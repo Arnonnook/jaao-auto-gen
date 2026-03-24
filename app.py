@@ -1,58 +1,41 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. ตั้งค่าหน้าตาเว็บ
+# 1. ตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="JAAO AI", page_icon="🎨")
-
-# --- CSS แบบใหม่: เน้นให้ปุ่มเด่นเห็นชัดเจน ---
-st.markdown("""
-<style>
-    .stApp { background-color: #ffffff; }
-    h1 { color: #ff4b4b; text-align: center; font-weight: bold; }
-    
-    /* สไตล์ปุ่มกด: สีแดงเข้ม ตัวหนังสือขาว ขนาดใหญ่ */
-    div.stButton > button:first-child {
-        background-color: #ff4b4b !important;
-        color: white !important;
-        width: 100%;
-        height: 60px;
-        font-size: 20px;
-        font-weight: bold;
-        border-radius: 10px;
-        border: none;
-        margin-top: 10px;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # 2. ใส่ API Key (ใส่รหัสของคุณที่นี่)
 API_KEY = "AIzaSyD7PL5ugkzzVGn00Sy8rzwdiMqis7mIjQQ"
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash')
+
+# --- ฟังก์ชันเลือก Model แบบกันพลาด ---
+try:
+    # พยายามใช้ 2.5 flash ก่อนเพราะในรูปคุณมันโชว์ตัวนี้
+    model = genai.GenerativeModel('gemini-2.5-flash')
+except:
+    try:
+        # ถ้าไม่ได้ให้ถอยไปใช้ 1.5 flash รุ่นมาตรฐาน
+        model = genai.GenerativeModel('gemini-1.5-flash')
+    except:
+        # ถ้ายังไม่ได้อีก ให้ใช้รุ่น pro
+        model = genai.GenerativeModel('gemini-pro')
 
 # 3. หน้าจอเว็บ
-st.markdown("<h1>🌟 JAAO AI AUTO-GEN</h1>", unsafe_allow_html=True)
+st.title("🌟 JAAO AI AUTO-GEN")
 
-# เลือกโหมด
-option = st.selectbox('🚀 เลือกสิ่งที่ต้องการสร้าง:', 
-    ('🎵 แต่งเนื้อเพลง', '📹 เขียนสคริปต์วิดีโอ', '💡 คิดไอเดียคอนเทนต์'))
+user_input = st.text_area("รายละเอียดงาน:", placeholder="พิมพ์สิ่งที่ต้องการให้ AI ทำ...")
 
-# --- ขยับปุ่มมาไว้ตรงนี้ เพื่อให้เห็นชัดๆ ก่อนช่องพิมพ์ยาวๆ ---
-submit_button = st.button("กดที่นี่เพื่อเริ่มรัน ✨")
-
-# ช่องรับคำสั่ง
-user_input = st.text_area("รายละเอียดงาน:", placeholder="พิมพ์รายละเอียดที่นี่...")
-
-# 4. การประมวลผล
-if submit_button:
+if st.button("เริ่มสร้างความปัง ✨"):
     if user_input:
-        with st.spinner("AI กำลังคิดให้ครับ..."):
+        with st.spinner("AI กำลังประมวลผล..."):
             try:
-                response = model.generate_content(f"ช่วย {user_input} ในฐานะ {option}")
+                # บรรทัดสำคัญ: สั่งเจนเนื้อหา
+                response = model.generate_content(user_input)
                 st.balloons()
                 st.success("สำเร็จแล้ว!")
-                st.info(response.text)
+                st.write(response.text)
             except Exception as e:
+                # ถ้าพลาดยังไง ให้มันฟ้อง Error ออกมาตรงๆ
                 st.error(f"เกิดข้อผิดพลาด: {e}")
     else:
-        st.warning("กรุณาพิมพ์รายละเอียดก่อนกดปุ่มครับ")
+        st.warning("กรุณาพิมพ์รายละเอียดก่อนครับ")
