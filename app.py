@@ -11,14 +11,23 @@ if 'history' not in st.session_state:
 if 'input_text' not in st.session_state:
     st.session_state.input_text = ""
 
-# --- การตกแต่งด้วย CSS ---
+# --- การตกแต่งด้วย CSS (เน้นชื่อแอปสีแดงชัดเจน) ---
 st.markdown("""
 <style>
     .stApp { background-color: #fdfcf5; }
-    h1 { color: #ff4b4b; text-align: center; font-weight: bold; }
+    
+    /* แก้ไขชื่อแอปให้เป็นสีแดงสดและตัวหนาพิเศษ */
+    .app-title {
+        color: #e63946 !important; /* สีแดงเข้มสด */
+        text-align: center;
+        font-size: 42px !important;
+        font-weight: 900 !important;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1); /* เพิ่มเงาบางๆ ให้ดูมีมิติ */
+    }
     
     .main-button > div > button {
-        background-color: #ff4b4b !important;
+        background-color: #e63946 !important;
         color: white !important;
         border-radius: 15px;
         width: 100%;
@@ -48,8 +57,8 @@ except:
     st.error("⚠️ ไม่พบ API Key ใน Secrets!")
     st.stop()
 
-# 3. หน้าจอหลัก
-st.markdown("<h1>🌈 JAAO Creative Studio</h1>", unsafe_allow_html=True)
+# 3. หน้าจอหลัก (ใช้ Class app-title ที่สร้างไว้)
+st.markdown('<h1 class="app-title">🔴 JAAO Creative Studio</h1>', unsafe_allow_html=True)
 
 with st.sidebar:
     st.title("📜 ประวัติการสร้าง")
@@ -85,20 +94,18 @@ if st.button("เริ่มสร้างความปัง ✨"):
     if user_input:
         with st.spinner("AI กำลังวิเคราะห์ข้อมูลเทคนิคให้คุณ..."):
             try:
-                # แก้ไขส่วนนี้โดยใช้ f-string แบบบรรทัดเดียวเพื่อลดความเสี่ยง Syntax Error
-                prompt_to_ai = f"ในฐานะผู้เชี่ยวชาญด้าน {option} ช่วย {user_input} โดยแบ่งคำตอบเป็น 2 ส่วนคือ [RESULT]: เนื้อหาหลัก และ [SPECIAL_INFO]: ข้อมูลพิเศษเชิงเทคนิค สไตล์ อารมณ์ หรือการจัดแสง ขอแบบมือโปร"
+                prompt_to_ai = f"ในฐานะผู้เชี่ยวชาญด้าน {option} ช่วย {user_input} โดยแบ่งคำตอบเป็น 2 ส่วนคือ [RESULT]: เนื้อหาหลัก และ [SPECIAL_INFO]: ข้อมูลพิเศษเชิงเทคนิค สไตล์ อารมณ์ หรือการจัดแสง"
                 
                 response = model.generate_content(prompt_to_ai)
                 full_text = response.text
                 
-                # แยกส่วนคำตอบ
                 if "[SPECIAL_INFO]" in full_text:
                     parts = full_text.split("[SPECIAL_INFO]")
                     main_result = parts[0].replace("[RESULT]", "").strip()
                     special_info = parts[1].strip()
                 else:
                     main_result = full_text
-                    special_info = "AI ไม่ได้ระบุข้อมูลพิเศษในครั้งนี้ ลองกดใหม่อีกครั้งครับ"
+                    special_info = "AI ไม่ได้ระบุข้อมูลพิเศษในครั้งนี้"
 
                 st.balloons()
                 st.success("สร้างเสร็จแล้ว! 🎉")
