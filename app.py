@@ -11,13 +11,12 @@ if 'history' not in st.session_state:
 if 'input_text' not in st.session_state:
     st.session_state.input_text = ""
 
-# --- การตกแต่งด้วย CSS (เน้นความชัดเจนของตัวหนังสือ) ---
+# --- การตกแต่งด้วย CSS ---
 st.markdown("""
 <style>
     .stApp { background-color: #fdfcf5; }
     h1 { color: #ff4b4b; text-align: center; font-weight: bold; }
     
-    /* สไตล์ปุ่มกดหลัก */
     .main-button > div > button {
         background-color: #ff4b4b !important;
         color: white !important;
@@ -28,19 +27,14 @@ st.markdown("""
         font-weight: bold;
     }
     
-    /* กล่องข้อมูลพิเศษ (ปรับใหม่: พื้นหลังเข้ม ตัวหนังสือขาว) */
     .special-info {
-        background-color: #2d3436; /* สีเทาเข้มเกือบดำ */
-        color: #ffffff !important; /* ตัวหนังสือสีขาวบริสุทธิ์ */
+        background-color: #2d3436;
+        color: #ffffff !important;
         padding: 20px;
         border-radius: 12px;
-        border-left: 8px solid #fab005; /* ขอบสีเหลืองทองเพิ่มความเด่น */
+        border-left: 8px solid #fab005;
         margin-top: 15px;
         line-height: 1.6;
-        font-size: 16px;
-    }
-    .special-info b, .special-info strong {
-        color: #fab005 !important; /* เน้นตัวหนาด้วยสีเหลืองทอง */
     }
 </style>
 """, unsafe_allow_html=True)
@@ -51,13 +45,12 @@ try:
     genai.configure(api_key=API_KEY)
     model = genai.GenerativeModel('gemini-2.5-flash')
 except:
-    st.error("⚠️ ไม่พบ API Key! กรุณาตรวจสอบ Secrets")
+    st.error("⚠️ ไม่พบ API Key ใน Secrets!")
     st.stop()
 
-# 3. ส่วนหน้าจอหลัก
+# 3. หน้าจอหลัก
 st.markdown("<h1>🌈 JAAO Creative Studio</h1>", unsafe_allow_html=True)
 
-# --- แถบด้านข้าง (Sidebar) ---
 with st.sidebar:
     st.title("📜 ประวัติการสร้าง")
     if st.button("ล้างประวัติ"):
@@ -68,7 +61,6 @@ with st.sidebar:
         with st.expander(f"📌 {item['time']} - {item['type']}"):
             st.write(item['result'])
 
-# --- ส่วนปุ่มลัด (Quick Prompts) ---
 st.write("✨ **เลือกตัวอย่างคำสั่ง:**")
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -84,7 +76,6 @@ with c3:
         st.session_state.input_text = "เขียนไรม์แร็ปเล่าชีวิตคนทำ AI ชื่อ JAAO ขอแบบดุดัน"
         st.rerun()
 
-# --- ส่วนรับข้อมูล ---
 option = st.selectbox('🎨 เลือกโหมด:', ('🎵 แต่งเนื้อเพลง', '📷 พร้อมถ่ายภาพบุคคล', '📹 สคริปต์วิดีโอ'))
 user_input = st.text_area("รายละเอียดงานของคุณ:", value=st.session_state.input_text, height=150)
 
@@ -94,8 +85,33 @@ if st.button("เริ่มสร้างความปัง ✨"):
     if user_input:
         with st.spinner("AI กำลังวิเคราะห์ข้อมูลเทคนิคให้คุณ..."):
             try:
-                prompt_to_ai = f"""
-                ในฐานะผู้เชี่ยวชาญด้าน {option} ช่วย {user_input} โดยแบ่งคำตอบเป็น 2 ส่วนชัดเจน:
-                1. [RESULT]: เนื้อหาหลัก
-                2. [SPECIAL_INFO]: ข้อมูลพิเศษ (Style/Tempo/Mood หรือ Lighting/Lens/Tips)
-                ขอแบบมือโปรและ
+                # แก้ไขส่วนนี้โดยใช้ f-string แบบบรรทัดเดียวเพื่อลดความเสี่ยง Syntax Error
+                prompt_to_ai = f"ในฐานะผู้เชี่ยวชาญด้าน {option} ช่วย {user_input} โดยแบ่งคำตอบเป็น 2 ส่วนคือ [RESULT]: เนื้อหาหลัก และ [SPECIAL_INFO]: ข้อมูลพิเศษเชิงเทคนิค สไตล์ อารมณ์ หรือการจัดแสง ขอแบบมือโปร"
+                
+                response = model.generate_content(prompt_to_ai)
+                full_text = response.text
+                
+                # แยกส่วนคำตอบ
+                if "[SPECIAL_INFO]" in full_text:
+                    parts = full_text.split("[SPECIAL_INFO]")
+                    main_result = parts[0].replace("[RESULT]", "").strip()
+                    special_info = parts[1].strip()
+                else:
+                    main_result = full_text
+                    special_info = "AI ไม่ได้ระบุข้อมูลพิเศษในครั้งนี้ ลองกดใหม่อีกครั้งครับ"
+
+                st.balloons()
+                st.success("สร้างเสร็จแล้ว! 🎉")
+                st.markdown("### 📝 ผลลัพธ์หลัก:")
+                st.info(main_result)
+                st.markdown("### 💡 ข้อมูลพิเศษ & เทคนิคเพิ่มเติม:")
+                st.markdown(f'<div class="special-info">{special_info}</div>', unsafe_allow_html=True)
+                
+                now = datetime.datetime.now().strftime("%H:%M")
+                st.session_state.history.append({"type": option, "result": full_text, "time": now})
+                
+            except Exception as e:
+                st.error(f"เกิดข้อผิดพลาด: {e}")
+    else:
+        st.warning("กรุณากรอกข้อมูลก่อนครับ")
+st.markdown('</div>', unsafe_allow_html=True)
