@@ -17,7 +17,7 @@ API_KEY = "AIzaSyD7PL5ugkzzVGn00Sy8rzwdiMqis7mIjQQ"
 genai.configure(api_key=API_KEY)
 
 # ใช้รุ่น Flash-Latest (ตัวที่เร็วที่สุด)
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 st.title("⚡ JAAO Fast Gen")
 
