@@ -46,6 +46,7 @@ st.markdown("""
         border-radius: 12px;
         border-left: 8px solid #fab005;
         margin-top: 15px;
+        line-height: 1.6;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -61,7 +62,7 @@ except:
 
 # 3. หน้าจอหลัก
 st.markdown('<h1 class="app-title">🔴 JAAO Creative Studio</h1>', unsafe_allow_html=True)
-st.markdown('<p class="app-version">Version 7.0 | AI Powerhouse</p>', unsafe_allow_html=True)
+st.markdown('<p class="app-version">Version 7.4 | AI Powerhouse</p>', unsafe_allow_html=True)
 
 with st.sidebar:
     st.title("📜 ประวัติ")
@@ -76,7 +77,6 @@ with st.sidebar:
 # --- ปุ่มลัดเลือกสไตล์ ---
 st.write("✨ **กดเลือกสไตล์ด่วน:**")
 c1, c2, c3, c4, c5 = st.columns(5)
-
 with c1:
     if st.button("🎵ลูกทุ่ง"): st.session_state.input_text = "แต่งเพลงลูกทุ่งร่วมสมัย หนุ่มโรงงานอกหัก"; st.rerun()
 with c2:
@@ -99,7 +99,6 @@ progress_placeholder = st.empty()
 # 4. ปุ่มรันงาน
 if st.button("🚀 เริ่มสร้างความปัง (RUN)"):
     if user_input:
-        # --- แก้ไขจุดนี้: ปิดวงเล็บให้ถูกต้องเรียบร้อยในบรรทัดเดียว ---
         progress_bar = progress_placeholder.progress(0)
         messages = ["🔍 วิเคราะห์โจทย์...", "🧠 AI กำลังใช้ความคิด...", "✍️ เรียบเรียงเนื้อหา...", "✨ เพิ่มเทคนิคพิเศษ..."]
         
@@ -110,19 +109,3 @@ if st.button("🚀 เริ่มสร้างความปัง (RUN)"):
                 status_placeholder.warning(f"สถานะ: {messages[i//25]}")
         
         try:
-            prompt_to_ai = f"ช่วย {user_input} ในฐานะ {option} โดยแยกเป็น [RESULT]: เนื้อหาหลัก และ [SPECIAL_INFO]: ข้อมูลเทคนิค สไตล์ อารมณ์ หรือการจัดแสง"
-            response = model.generate_content(prompt_to_ai)
-            
-            status_placeholder.empty()
-            progress_placeholder.empty()
-            
-            st.balloons()
-            st.success("เสร็จเรียบร้อย! 🎉")
-            
-            full_text = response.text
-            if "[SPECIAL_INFO]" in full_text:
-                parts = full_text.split("[SPECIAL_INFO]")
-                st.markdown("### 📝 ผลลัพธ์หลัก:")
-                st.info(parts[0].replace("[RESULT]", "").strip())
-                st.markdown("### 💡 ข้อมูลพิเศษ & เทคนิคเพิ่มเติม:")
-                st.markdown(f'<div class="special-info
