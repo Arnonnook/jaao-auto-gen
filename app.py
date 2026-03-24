@@ -61,7 +61,7 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- ส่วนหน้าเว็บ (Frontend) ---
 # 3. ส่วนหัวของเว็บ
-st.markdown("<h1>🌈 JAAO Creative Studio v.2</h1>", unsafe_allow_stdio=True)
+st.markdown("<h1>🌈 JAAO Creative Studio v.2</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
 # 4. เมนูเลือกประเภทงาน (ปรับโจทย์ให้ชัดเจนขึ้น)
