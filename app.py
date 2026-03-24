@@ -1,59 +1,58 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. ตั้งค่าหน้าตาเว็บ (Colorful & Fast)
-st.set_page_config(page_title="JAAO AI STUDIO", page_icon="🎨", layout="centered")
+# 1. ตั้งค่าหน้าตาเว็บ
+st.set_page_config(page_title="JAAO AI", page_icon="🎨")
 
-# --- ส่วนตกแต่งหน้าเว็บด้วย CSS ---
+# --- CSS แบบใหม่: เน้นให้ปุ่มเด่นเห็นชัดเจน ---
 st.markdown("""
 <style>
-    .stApp { background-color: #f0faff; }
-    h1 {
-        color: #ff4b4b;
-        text-align: center;
-        background: -webkit-linear-gradient(#ff4b4b, #ffda5f);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-family: 'Arial Black', sans-serif;
-    }
-    .stButton>button {
-        background-color: #ff4b4b;
-        color: white;
-        border-radius: 12px;
-        font-weight: bold;
-        height: 3em;
+    .stApp { background-color: #ffffff; }
+    h1 { color: #ff4b4b; text-align: center; font-weight: bold; }
+    
+    /* สไตล์ปุ่มกด: สีแดงเข้ม ตัวหนังสือขาว ขนาดใหญ่ */
+    div.stButton > button:first-child {
+        background-color: #ff4b4b !important;
+        color: white !important;
         width: 100%;
+        height: 60px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
         border: none;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .result-box {
-        background-color: white;
-        padding: 20px;
-        border-radius: 15px;
-        border-left: 5px solid #ff4b4b;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-top: 10px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 2. ตั้งค่า API Key (ใส่รหัสของคุณแทนที่จุดนี้)
+# 2. ใส่ API Key (ใส่รหัสของคุณที่นี่)
 API_KEY = "AIzaSyD7PL5ugkzzVGn00Sy8rzwdiMqis7mIjQQ"
 genai.configure(api_key=API_KEY)
-
-# ใช้รุ่น 2.5 Flash ตามที่ระบบคุณแนะนำ (เร็วและฉลาดสุด)
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-# 3. ส่วนการแสดงผลหน้าเว็บ
+# 3. หน้าจอเว็บ
 st.markdown("<h1>🌟 JAAO AI AUTO-GEN</h1>", unsafe_allow_html=True)
-st.write("---")
 
-# เลือกโหมดการทำงาน
-option = st.selectbox(
-    '🚀 เลือกสิ่งที่ต้องการสร้าง:',
-    ('🎵 แต่งเนื้อเพลงสุดปัง', '📹 เขียนสคริปต์วิดีโอ', '💡 คิดไอเดียคอนเทนต์', '🐍 เขียนโค้ด Python')
-)
+# เลือกโหมด
+option = st.selectbox('🚀 เลือกสิ่งที่ต้องการสร้าง:', 
+    ('🎵 แต่งเนื้อเพลง', '📹 เขียนสคริปต์วิดีโอ', '💡 คิดไอเดียคอนเทนต์'))
 
-# ช่องรับคำสั่ง (ใช้ชื่อตัวแปร user_input ให้ตรงกัน)
-user_input = st.text_area(f"รายละเอียดสำหรับ {option}:", placeholder="พิมพ์รายละเอียดที่นี่ เช่น อยากได้เพลงรักแนวลูกทุ่งซึ้งๆ...")
+# --- ขยับปุ่มมาไว้ตรงนี้ เพื่อให้เห็นชัดๆ ก่อนช่องพิมพ์ยาวๆ ---
+submit_button = st.button("กดที่นี่เพื่อเริ่มรัน ✨")
 
-# 4. ส่วน
+# ช่องรับคำสั่ง
+user_input = st.text_area("รายละเอียดงาน:", placeholder="พิมพ์รายละเอียดที่นี่...")
+
+# 4. การประมวลผล
+if submit_button:
+    if user_input:
+        with st.spinner("AI กำลังคิดให้ครับ..."):
+            try:
+                response = model.generate_content(f"ช่วย {user_input} ในฐานะ {option}")
+                st.balloons()
+                st.success("สำเร็จแล้ว!")
+                st.info(response.text)
+            except Exception as e:
+                st.error(f"เกิดข้อผิดพลาด: {e}")
+    else:
+        st.warning("กรุณาพิมพ์รายละเอียดก่อนกดปุ่มครับ")
