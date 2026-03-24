@@ -1,41 +1,50 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. ตั้งค่าหน้าตาเว็บ
-st.set_page_config(page_title="JAAO COLORFUL AI", page_icon="🎨", layout="centered")
+# ตั้งค่าหน้าเว็บ
+st.set_page_config(page_title="JAAO FAST AI", page_icon="⚡")
 
-# --- การตกแต่งด้วย CSS ---
+# ตกแต่ง CSS เล็กน้อย (ตัดส่วนที่ทำให้โหลดช้าออก)
 st.markdown("""
 <style>
-    .stApp { background-color: #f0f8ff; }
-    h1 {
-        color: #ff4b4b;
-        text-align: center;
-        background: -webkit-linear-gradient(#ff4b4b, #ffda5f);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .stButton>button {
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 20px;
-        font-weight: bold;
-    }
+    .stApp { background-color: #fafafa; }
+    .stButton>button { background-color: #ff4b4b; color: white; border-radius: 10px; }
 </style>
-""", unsafe_allow_html=True) # <--- แก้ตรงนี้จาก stdio เป็น html
+""", unsafe_allow_html=True)
 
-# 2. ใส่ API Key ของคุณ (อย่าลืมใส่รหัสของคุณตรงนี้)
-API_KEY = "ใส่_API_KEY_ของคุณที่นี่"
+# ใส่ API Key
+API_KEY = "AIzaSyD7PL5ugkzzVGn00Sy8rzwdiMqis7mIjQQ"
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
 
-# 3. ส่วนหัวของเว็บ
-st.markdown("<h1>🌈 JAAO Creative Studio v.2</h1>", unsafe_allow_html=True) # <--- ตรงนี้ด้วยครับ
-st.markdown("---")
+# ใช้รุ่น Flash-Latest (ตัวที่เร็วที่สุด)
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
-option = st.selectbox('🎨 เลือกโหมดการสร้างสรรค์:', ('🎵 แต่งเนื้อเพลง', '📹 เขียนสคริปต์ YouTube', '💡 คิดไอเดียคลิปสั้น', '🐍 ช่วยเขียน Code Python'))
-user_prompt = st.text_area(f"รายละเอียดสำหรับ {option}:", placeholder="พิมพ์รายละเอียดที่นี่...")
+st.title("⚡ JAAO Fast Gen")
 
+user_input = st.text_input("พิมพ์คำสั่งสั้นๆ เพื่อทดสอบความเร็ว:", placeholder="เช่น แต่งกลอน 2 บรรทัด")
+
+if st.button("ส่งคำสั่ง"):
+    if user_input:
+        # สร้างกล่องว่างไว้รอรับข้อความที่กำลังพิมพ์
+        message_placeholder = st.empty()
+        full_response = ""
+        
+        with st.spinner("AI กำลังพิมพ์..."):
+            try:
+                # ใช้ stream=True เพื่อให้ส่งข้อมูลมาทีละนิด
+                response = model.generate_content(user_input, stream=True)
+                
+                for chunk in response:
+                    full_response += chunk.text
+                    # อัปเดตข้อความบนหน้าเว็บทันทีที่ได้ข้อมูลใหม่
+                    message_placeholder.markdown(full_response + "▌")
+                
+                # เมื่อเสร็จแล้วเอาตัวขีดออก
+                message_placeholder.markdown(full_response)
+                st.balloons()
+                
+            except Exception as e:
+                st.error(f"เกิดข้อผิดพลาด: {e}")
 if st.button("เริ่มสร้างความปัง ✨", use_container_width=True):
     if user_prompt:
         with st.spinner("กำลังประมวลผล..."):
