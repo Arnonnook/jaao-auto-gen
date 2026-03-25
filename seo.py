@@ -25,7 +25,7 @@ try:
     API_KEY = st.secrets["MY_API_KEY"] 
     genai.configure(api_key=API_KEY)
     # ใช้รุ่น 1.5-flash เพื่อโควตาที่เยอะและเสถียร
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 except:
     st.error("⚠️ ไม่พบ MY_API_KEY ใน Secrets ครับ!")
     st.stop()
