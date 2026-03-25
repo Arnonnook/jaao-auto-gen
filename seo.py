@@ -2,12 +2,11 @@ import streamlit as st
 from groq import Groq
 import datetime
 import time
-import re
 
 # 1. ตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="JAAO YouTube SEO Pro", page_icon="🎥", layout="wide")
 
-# --- การตกแต่งด้วย CSS (Dark Mode & YouTube Red) ---
+# --- การตกแต่งด้วย CSS ---
 st.markdown("""
 <style>
     .stApp { background-color: #0f0f0f; color: #ffffff; }
@@ -16,9 +15,7 @@ st.markdown("""
         background-color: #ff0000 !important; color: white !important;
         height: 55px; font-size: 18px; font-weight: bold; border-radius: 30px; width: 100%;
     }
-    .analysis-card {
-        background-color: #1e1e1e; padding: 20px; border-radius: 15px; border-left: 5px solid #ff0000; margin-bottom: 20px;
-    }
+    .result-section { background-color: #1e1e1e; padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid #333; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -26,49 +23,41 @@ st.markdown("""
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("⚠️ อย่าลืมใส่ GROQ_API_KEY ใน Secrets นะครับ!")
+    st.error("⚠️ ตรวจสอบ GROQ_API_KEY ใน Secrets ด้วยครับ")
     st.stop()
 
 # 3. หน้าจอหลัก
-st.markdown('<h1 class="seo-title">🎥 JAAO YOUTUBE LINK ANALYZER</h1>', unsafe_allow_html=True)
-st.write("---")
+st.markdown('<h1 class="seo-title">🎥 JAAO MUSIC SEO ANALYZER</h1>', unsafe_allow_html=True)
 
 col_left, col_right = st.columns([1, 1.2])
 
 with col_left:
-    st.subheader("🔗 วิเคราะห์จากลิงก์วิดีโอ")
-    # ช่องใส่ลิงก์ YouTube
-    yt_url = st.text_input("วางลิงก์วิดีโอ YouTube ที่นี่:", placeholder="https://www.youtube.com/watch?v=...")
+    st.subheader("🎵 วิเคราะห์เพลง/วิดีโอ")
+    yt_url = st.text_input("วางลิงก์ YouTube ที่นี่:", placeholder="https://www.youtube.com/watch?v=...")
     
-    st.write("หรือ")
+    # เพิ่มช่องให้พี่ใส่คำอธิบายสั้นๆ เพื่อให้ AI ทำงานแม่นขึ้น
+    extra_info = st.text_input("เพลงนี้แนวไหน? (เช่น ลูกทุ่ง, ร็อก, เพื่อชีวิต):", placeholder="ระบุแนวเพลงสั้นๆ จะแม่นขึ้นมากครับ")
     
-    video_topic = st.text_area("ระบุหัวข้อ/เนื้อหาคลิป (กรณีไม่มีลิงก์):", height=100)
-    
-    st.write("---")
-    focus_on = st.multiselect("เน้นวิเคราะห์ส่วนไหน:", 
-                              ["ชื่อคลิป (Title)", "คำอธิบาย (Description)", "แท็ก (Tags)", "ไอเดียหน้าปก (Thumbnail)"],
-                              default=["ชื่อคลิป (Title)", "แท็ก (Tags)"])
-
-    analyze_btn = st.button("🚀 เริ่มวิเคราะห์ SEO ทันที")
+    analyze_btn = st.button("🚀 เริ่มวิเคราะห์ SEO สายดนตรี")
 
 with col_right:
     if analyze_btn:
-        if yt_url or video_topic:
-            with st.spinner("⏳ AI กำลังแกะรหัส SEO ของวิดีโอนี้..."):
+        if yt_url:
+            with st.spinner("⏳ กำลังแกะรหัส SEO และแนวเพลง..."):
                 try:
-                    # เตรียมข้อมูลส่งให้ AI
-                    source_info = yt_url if yt_url else video_topic
+                    # ปรับ Prompt ให้ฉลาดเรื่องเพลงมากขึ้น
                     prompt = f"""
-                    วิเคราะห์วิดีโอจากข้อมูลนี้: '{source_info}' 
-                    ในฐานะผู้เชี่ยวชาญ YouTube SEO ช่วยวิเคราะห์และเสนอแนะเพื่อเพิ่มยอดวิว (CTR & Ranking):
+                    วิเคราะห์วิดีโอจากลิงก์: {yt_url} 
+                    ข้อมูลเพิ่มเติมจากผู้ใช้: {extra_info}
                     
-                    1. [CURRENT_ANALYSIS]: วิเคราะห์ข้อดี/ข้อเสียของ SEO ปัจจุบัน (ถ้าเป็นลิงก์ให้ประเมินจากหัวข้อ)
-                    2. [OPTIMIZED_TITLE]: เสนอชื่อคลิปใหม่ 3 แบบที่ดึงดูดใจ (Clickbait แบบมีคุณภาพ)
-                    3. [SEO_KEYWORDS]: ชุดแท็ก (Tags) ที่ควรใช้เพื่อดัก Search (แยกด้วยคอมม่า)
-                    4. [HOOK_STRATEGY]: แนะนำคำขึ้นต้น Description 2 บรรทัดแรกให้คนอยากกด 'ดูเพิ่มเติม'
-                    5. [THUMBNAIL_UPGRADE]: แนะนำการปรับรูปหน้าปกให้เด่นกว่าคู่แข่ง
+                    ในฐานะ YouTube Music Marketing Expert ช่วยแนะนำ SEO ดังนี้:
+                    1. [ANALYSIS]: เพลงนี้ควรเน้น Keyword กลุ่มไหนถึงจะเจอคนฟังที่ใช่
+                    2. [BEST_TITLES]: เสนอชื่อคลิป 3 แบบ (เน้นอารมณ์เพลง/เน้นค้นหา/เน้นไวรัล)
+                    3. [MUSIC_TAGS]: สร้าง Tags 20 คำ (เน้น: แนวเพลง, อารมณ์เพลง, ชื่อศิลปินที่คล้ายกัน, คำค้นหาฮิตๆ) **แยกด้วยคอมม่า**
+                    4. [DESCRIPTION_START]: เขียน Hook 2 บรรทัดแรกให้น่าดึงดูด
+                    5. [THUMBNAIL_IDEA]: แนวทางการทำรูปหน้าปกให้ดูเป็นมืออาชีพ
                     
-                    ตอบเป็นภาษาไทยที่เข้าใจง่ายและใช้งานได้จริง
+                    ตอบเป็นภาษาไทย และเน้น Tag ที่เกี่ยวข้องกับดนตรีและเพลงโดยเฉพาะ
                     """
                     
                     completion = client.chat.completions.create(
@@ -77,24 +66,21 @@ with col_right:
                     )
                     
                     result = completion.choices[0].message.content
+                    st.success("วิเคราะห์เสร็จแล้วครับพี่ JAAO!")
                     
-                    st.success("วิเคราะห์เสร็จสมบูรณ์! 🎉")
-                    
-                    # แสดงผลแบบแยกส่วน
-                    st.markdown("### 📊 ผลการวิเคราะห์กลยุทธ์:")
-                    st.write(result)
-                    
-                    # ทำปุ่มก๊อปปี้แท็กให้พี่ JAAO โดยเฉพาะ
-                    if "[SEO_KEYWORDS]" in result:
-                        st.write("---")
-                        st.subheader("📋 ก๊อปปี้ Tags ไปใช้ได้เลย:")
-                        tags = result.split("[SEO_KEYWORDS]")[1].split("[HOOK_STRATEGY]")[0].strip()
-                        st.code(tags)
+                    # แสดงผล
+                    if "[MUSIC_TAGS]" in result:
+                        parts = result.split("[MUSIC_TAGS]")
+                        st.markdown("### 📋 Tags สำหรับสายเพลง (ก๊อปปี้ไปวางได้เลย):")
+                        tags_part = parts[1].split("[")[0].strip()
+                        st.code(tags_part)
+                        
+                        st.markdown("### 📝 คำแนะนำอื่นๆ:")
+                        st.write(result.replace("[MUSIC_TAGS]" + tags_part, ""))
+                    else:
+                        st.write(result)
 
                 except Exception as e:
                     st.error(f"เกิดข้อผิดพลาด: {e}")
         else:
-            st.warning("กรุณาใส่ลิงก์ หรือระบุหัวข้อวิดีโอก่อนนะครับพี่")
-
-st.write("---")
-st.caption("© 2026 JAAO SEO Studio v.2.0 | วิเคราะห์แม่นยำ ดันยอดวิวให้พุ่ง")
+            st.warning("วางลิงก์ก่อนครับพี่")
