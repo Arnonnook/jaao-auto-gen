@@ -110,30 +110,3 @@ with col_out:
             st.warning("กรุณาใส่รายละเอียดก่อนครับ")
 
 st.caption("© 2026 JAAO Studio | ออกแบบสัดส่วนแม่นยำ 100%")
-                        
-                        st.markdown('<div class="concept-card">', unsafe_allow_html=True)
-                        st.subheader("🔠 ข้อความพาดหัวบนปก (ภาษาไทย):")
-                        st.write(txt_val)
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        st.markdown('<div class="concept-card">', unsafe_allow_html=True)
-                        st.subheader("🎨 พร้อมท์ภาษาอังกฤษสำหรับ AI สร้างรูป (ก๊อปไปวางใน Midjourney/Canva AI ได้เลย):")
-                        st.code(img_prompt, language="text") # ช่องนี้จะสะอาด มีแต่พร้อมท์ล้วนๆ
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        # เพิ่มปุ่มจำลองการเจนรูป
-                        if st.button("🎨 เริ่มเจนรูปจากพร้อมท์นี้"):
-                            with st.spinner("⏳ ระบบกำลังเชื่อมต่อ AI สร้างรูป..."):
-                                time.sleep(2) # จำลองเวลาเจนรูป
-                                st.warning("⚠️ ตอนนี้ผมยังไม่ได้ต่อ Stable Diffusion API จริงๆ ครับ ถ้าพี่สมัคร Key แล้วผมจะทำให้มันเจนรูปโชว์ในแอปได้เลยครับ!")
-                        
-                    except:
-                        st.write(res) # กรณี AI รูปแบบเพี้ยน
-
-                except Exception as e:
-                    st.error(f"เกิดข้อผิดพลาด: {e}")
-        else:
-            st.warning("กรุณาใส่หัวข้อคลิปหรือรายละเอียดก่อนครับพี่ JAAO")
-
-st.write("---")
-st.caption("Developed by JAAO | AI Thumbnail & Image Generator Studio")
