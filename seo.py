@@ -2,46 +2,22 @@ import streamlit as st
 from groq import Groq
 import datetime
 import time
+import re
 
 # 1. ตั้งค่าหน้าเว็บ
-st.set_page_config(page_title="JAAO YouTube SEO Pro", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="JAAO YouTube SEO Pro", page_icon="🎥", layout="wide")
 
-# --- การตกแต่งด้วย CSS (สไตล์ YouTube Dark Mode) ---
+# --- การตกแต่งด้วย CSS (Dark Mode & YouTube Red) ---
 st.markdown("""
 <style>
     .stApp { background-color: #0f0f0f; color: #ffffff; }
-    .seo-title {
-        color: #ff0000 !important; /* แดง YouTube */
-        text-align: center;
-        font-size: 40px !important;
-        font-weight: 900 !important;
-        text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-    }
+    .seo-title { color: #ff0000 !important; text-align: center; font-size: 40px !important; font-weight: 900 !important; }
     div.stButton > button:first-child {
-        background-color: #ff0000 !important;
-        color: white !important;
-        height: 55px;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 30px; /* ปุ่มมนสไตล์ YouTube */
-        width: 100%;
-        border: none;
+        background-color: #ff0000 !important; color: white !important;
+        height: 55px; font-size: 18px; font-weight: bold; border-radius: 30px; width: 100%;
     }
-    .result-box {
-        background-color: #212121;
-        padding: 20px;
-        border-radius: 15px;
-        border: 1px solid #333;
-        margin-top: 15px;
-    }
-    .tag-style {
-        background-color: #3f3f3f;
-        color: #ffffff;
-        padding: 5px 12px;
-        border-radius: 15px;
-        display: inline-block;
-        margin: 3px;
-        font-size: 13px;
+    .analysis-card {
+        background-color: #1e1e1e; padding: 20px; border-radius: 15px; border-left: 5px solid #ff0000; margin-bottom: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -50,40 +26,49 @@ st.markdown("""
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("⚠️ กรุณาตั้งค่า GROQ_API_KEY ใน Secrets ก่อนครับ")
+    st.error("⚠️ อย่าลืมใส่ GROQ_API_KEY ใน Secrets นะครับ!")
     st.stop()
 
 # 3. หน้าจอหลัก
-st.markdown('<h1 class="seo-title">🎥 JAAO YOUTUBE SEO PRO</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="seo-title">🎥 JAAO YOUTUBE LINK ANALYZER</h1>', unsafe_allow_html=True)
 st.write("---")
 
-col_in, col_out = st.columns([1, 1.2])
+col_left, col_right = st.columns([1, 1.2])
 
-with col_in:
-    st.subheader("📊 วิเคราะห์คลิปของคุณ")
-    video_topic = st.text_input("หัวข้อคลิป หรือ เนื้อหาเพลง:", placeholder="เช่น เพลงลูกทุ่งอกหักสู้ชีวิต, สอนใช้ AI สร้างภาพ")
-    target_group = st.selectbox("กลุ่มเป้าหมาย:", ["คนฟังเพลงทั่วไป", "วัยรุ่น/วัยทำงาน", "สายเทคโนโลยี/AI", "เด็ก/ครอบครัว"])
+with col_left:
+    st.subheader("🔗 วิเคราะห์จากลิงก์วิดีโอ")
+    # ช่องใส่ลิงก์ YouTube
+    yt_url = st.text_input("วางลิงก์วิดีโอ YouTube ที่นี่:", placeholder="https://www.youtube.com/watch?v=...")
     
-    st.write("🔍 **ตัวเลือกเสริม:**")
-    include_emoji = st.checkbox("ใส่ Emoji ในชื่อคลิปด้วย", value=True)
-    high_click = st.checkbox("เน้นชื่อคลิปแบบ Clickbait (เน้นยอดคลิก)", value=False)
+    st.write("หรือ")
+    
+    video_topic = st.text_area("ระบุหัวข้อ/เนื้อหาคลิป (กรณีไม่มีลิงก์):", height=100)
+    
+    st.write("---")
+    focus_on = st.multiselect("เน้นวิเคราะห์ส่วนไหน:", 
+                              ["ชื่อคลิป (Title)", "คำอธิบาย (Description)", "แท็ก (Tags)", "ไอเดียหน้าปก (Thumbnail)"],
+                              default=["ชื่อคลิป (Title)", "แท็ก (Tags)"])
 
-    run_seo = st.button("🚀 วิเคราะห์และตั้งค่า SEO")
+    analyze_btn = st.button("🚀 เริ่มวิเคราะห์ SEO ทันที")
 
-with col_out:
-    if run_seo:
-        if video_topic:
-            with st.spinner("⏳ กำลังเจาะระบบ Algorithm ของ YouTube..."):
+with col_right:
+    if analyze_btn:
+        if yt_url or video_topic:
+            with st.spinner("⏳ AI กำลังแกะรหัส SEO ของวิดีโอนี้..."):
                 try:
-                    # สั่ง Llama 3 ให้ทำ SEO แบบมืออาชีพ
+                    # เตรียมข้อมูลส่งให้ AI
+                    source_info = yt_url if yt_url else video_topic
                     prompt = f"""
-                    ในฐานะผู้เชี่ยวชาญ YouTube SEO ช่วยวิเคราะห์เนื้อหา: '{video_topic}' สำหรับกลุ่มเป้าหมาย {target_group}
-                    โดยให้ข้อมูลดังนี้:
-                    1. [TITLE]: เสนอชื่อคลิป 3 แบบ (น่าสนใจ/ทางการ/เน้นยอดวิว)
-                    2. [DESCRIPTION]: คำอธิบายคลิปสั้นๆ พร้อมใส่ Keyword สำคัญ
-                    3. [TAGS]: ชุดแท็ก 15 คำ (แยกด้วยคอมม่า)
-                    4. [THUMBNAIL]: ไอเดียภาพหน้าปกที่ดึงดูดสายตา
-                    5. [TIPS]: เทคนิคพิเศษเฉพาะคลิปนี้
+                    วิเคราะห์วิดีโอจากข้อมูลนี้: '{source_info}' 
+                    ในฐานะผู้เชี่ยวชาญ YouTube SEO ช่วยวิเคราะห์และเสนอแนะเพื่อเพิ่มยอดวิว (CTR & Ranking):
+                    
+                    1. [CURRENT_ANALYSIS]: วิเคราะห์ข้อดี/ข้อเสียของ SEO ปัจจุบัน (ถ้าเป็นลิงก์ให้ประเมินจากหัวข้อ)
+                    2. [OPTIMIZED_TITLE]: เสนอชื่อคลิปใหม่ 3 แบบที่ดึงดูดใจ (Clickbait แบบมีคุณภาพ)
+                    3. [SEO_KEYWORDS]: ชุดแท็ก (Tags) ที่ควรใช้เพื่อดัก Search (แยกด้วยคอมม่า)
+                    4. [HOOK_STRATEGY]: แนะนำคำขึ้นต้น Description 2 บรรทัดแรกให้คนอยากกด 'ดูเพิ่มเติม'
+                    5. [THUMBNAIL_UPGRADE]: แนะนำการปรับรูปหน้าปกให้เด่นกว่าคู่แข่ง
+                    
+                    ตอบเป็นภาษาไทยที่เข้าใจง่ายและใช้งานได้จริง
                     """
                     
                     completion = client.chat.completions.create(
@@ -93,30 +78,23 @@ with col_out:
                     
                     result = completion.choices[0].message.content
                     
-                    st.success("วิเคราะห์เสร็จแล้ว! นำไปใช้ได้เลย")
+                    st.success("วิเคราะห์เสร็จสมบูรณ์! 🎉")
                     
-                    # แสดงผลแบบแยกหมวดหมู่
-                    if "[TITLE]" in result:
-                        st.markdown("### 🏷️ ชื่อคลิปที่แนะนำ:")
-                        st.code(result.split("[TITLE]")[1].split("[DESCRIPTION]")[0].strip())
-                        
-                        st.markdown("### 📝 คำอธิบาย (Description):")
-                        st.info(result.split("[DESCRIPTION]")[1].split("[TAGS]")[0].strip())
-                        
-                        st.markdown("### 🏷️ แท็กที่ควรใส่ (Tags):")
-                        tags_raw = result.split("[TAGS]")[1].split("[THUMBNAIL]")[0].strip()
-                        st.code(tags_raw) # ให้พี่ก๊อปไปวางในช่อง Tags ของ YouTube
-                        
-                        st.markdown("### 🖼️ ไอเดียหน้าปก:")
-                        st.warning(result.split("[THUMBNAIL]")[1].split("[TIPS]")[0].strip())
-                    else:
-                        st.write(result)
-                        
+                    # แสดงผลแบบแยกส่วน
+                    st.markdown("### 📊 ผลการวิเคราะห์กลยุทธ์:")
+                    st.write(result)
+                    
+                    # ทำปุ่มก๊อปปี้แท็กให้พี่ JAAO โดยเฉพาะ
+                    if "[SEO_KEYWORDS]" in result:
+                        st.write("---")
+                        st.subheader("📋 ก๊อปปี้ Tags ไปใช้ได้เลย:")
+                        tags = result.split("[SEO_KEYWORDS]")[1].split("[HOOK_STRATEGY]")[0].strip()
+                        st.code(tags)
+
                 except Exception as e:
                     st.error(f"เกิดข้อผิดพลาด: {e}")
         else:
-            st.warning("ใส่หัวข้อคลิปก่อนครับพี่ JAAO")
+            st.warning("กรุณาใส่ลิงก์ หรือระบุหัวข้อวิดีโอก่อนนะครับพี่")
 
 st.write("---")
-st.caption("© 2026 JAAO SEO Studio | ดันช่องของคุณให้พุ่งทะลุล้านวิว")
-
+st.caption("© 2026 JAAO SEO Studio v.2.0 | วิเคราะห์แม่นยำ ดันยอดวิวให้พุ่ง")
