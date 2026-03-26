@@ -2,114 +2,90 @@ import streamlit as st
 import pandas as pd
 
 # 1. ตั้งค่าหน้าเว็บ
-st.set_page_config(page_title="JAAO Payroll Master", page_icon="💰", layout="wide")
+st.set_page_config(page_title="JAAO Daily Tracker", page_icon="📝", layout="wide")
 
-# --- การตกแต่งด้วย CSS (สไตล์แอปธนาคาร/บัญชี) ---
+# --- การตกแต่งด้วย CSS สไตล์สมุดบัญชีส่วนตัว ---
 st.markdown("""
 <style>
-    .stApp { background-color: #f4f7f6; color: #1e1e1e; }
-    .payroll-title {
-        color: #2e7d32 !important; /* สีเขียวเงินตรา */
-        text-align: center;
-        font-size: 35px !important;
-        font-weight: 900 !important;
-    }
-    .salary-card {
-        background-color: #ffffff;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border-top: 5px solid #2e7d32;
-    }
-    .total-box {
-        background-color: #e8f5e9;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        border: 2px dashed #2e7d32;
-    }
+    .stApp { background-color: #1e1e1e; color: #ffffff; }
+    .main-title { color: #00ff88 !important; text-align: center; font-size: 35px !important; font-weight: 900 !important; }
+    .card { background-color: #2d2d2d; padding: 20px; border-radius: 15px; border-top: 5px solid #00ff88; margin-bottom: 20px; }
+    .result-box { background-color: #004d33; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #00ff88; }
 </style>
 """, unsafe_allow_html=True)
 
-# 2. ส่วนหน้าจอหลัก
-st.markdown('<h1 class="payroll-title">💰 JAAO PAYROLL MASTER</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">📝 JAAO รายรับ-รายจ่าย รายวัน</h1>', unsafe_allow_html=True)
 st.write("---")
 
-col_left, col_right = st.columns([1, 1.2])
+col1, col2 = st.columns([1, 1.2])
 
-with col_left:
-    st.subheader("📋 บันทึกข้อมูลรายได้")
+with col1:
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("💰 คำนวณรายได้")
     
-    with st.container():
-        st.markdown('<div class="salary-card">', unsafe_allow_html=True)
-        emp_name = st.text_input("ชื่อพนักงาน / ชื่อตัวเอง:", value="พนักงาน A")
-        base_salary = st.number_input("เงินเดือนพื้นฐาน (บาท):", min_value=0, value=15000, step=500)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            ot_hours = st.number_input("ชั่วโมง OT:", min_value=0, value=0)
-            ot_rate = st.number_input("อัตรา OT ต่อชม.:", min_value=0, value=150)
-        with col2:
-            bonus = st.number_input("ค่าคอมมิชชัน/โบนัส:", min_value=0, value=0)
-            allowance = st.number_input("ค่าเบี้ยเลี้ยง/อื่นๆ:", min_value=0, value=0)
-            
-        st.write("---")
-        st.write("🚫 **รายการหัก**")
-        social_security = st.checkbox("หักประกันสังคม (5% สูงสุด 750.-)", value=True)
-        tax_deduct = st.number_input("หักภาษี ณ ที่จ่าย (%):", min_value=0, max_value=100, value=0)
-        other_deduct = st.number_input("รายการหักอื่นๆ:", min_value=0, value=0)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# 3. ส่วนการคำนวณ
-# คำนวณรายรับ
-total_ot = ot_hours * ot_rate
-gross_income = base_salary + total_ot + bonus + allowance
-
-# คำนวณรายหัก
-sso_amount = min(base_salary * 0.05, 750) if social_security else 0
-tax_amount = gross_income * (tax_deduct / 100)
-total_deduction = sso_amount + tax_amount + other_deduct
-
-# รายได้สุทธิ
-net_salary = gross_income - total_deduction
-
-with col_right:
-    st.subheader("📊 สรุปรายการรับ-จ่าย")
+    daily_rate = st.number_input("ค่าแรงรายวัน (บาท):", min_value=0, value=350, step=10)
+    work_days = st.number_input("จำนวนวันที่ทำงานในเดือนนี้:", min_value=0, max_value=31, value=26)
     
-    # ตารางสรุปแบบสวยงาม
-    data = {
-        "รายการ": ["เงินเดือนพื้นฐาน", "ค่า OT", "โบนัส/ค่าคอม", "ค่าเบี้ยเลี้ยง", "หักประกันสังคม", "หักภาษี", "หักอื่นๆ"],
-        "จำนวนเงิน (บาท)": [
-            f"{base_salary:,.2f}", 
-            f"{total_ot:,.2f}", 
-            f"{bonus:,.2f}", 
-            f"{allowance:,.2f}", 
-            f"-{sso_amount:,.2f}", 
-            f"-{tax_amount:,.2f}", 
-            f"-{other_deduct:,.2f}"
+    st.write("---")
+    st.write("🕒 **ค่าล่วงเวลา (OT)**")
+    ot_hours = st.number_input("จำนวนชั่วโมง OT รวมทั้งเดือน:", min_value=0, value=0)
+    ot_multiplier = st.number_input("ตัวคูณ OT (เช่น 1.5 หรือ 2):", min_value=1.0, value=1.5, step=0.1)
+    
+    # คำนวณค่าแรงต่อชั่วโมง (คิดจาก 8 ชม. ต่อวัน)
+    hourly_rate = daily_rate / 8
+    total_ot_money = ot_hours * (hourly_rate * ot_multiplier)
+    
+    total_income = (daily_rate * work_days) + total_ot_money
+    
+    st.markdown(f"**รายได้รวม: {total_income:,.2f} บาท**")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("🚫 รายจ่าย/เงินหัก")
+    food_per_day = st.number_input("ค่ากิน+เดินทาง (ต่อวัน):", min_value=0, value=150)
+    monthly_fixed = st.number_input("ค่าห้อง/ค่าน้ำ-ไฟ/หนี้สิน (ต่อเดือน):", min_value=0, value=0)
+    other_expense = st.number_input("ค่าใช้จ่ายอื่นๆ:", min_value=0, value=0)
+    
+    total_daily_expense = food_per_day * work_days
+    total_expense = total_daily_expense + monthly_fixed + other_expense
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# 4. ส่วนสรุปผล
+net_profit = total_income - total_expense
+
+with col2:
+    st.subheader("📊 สรุปเงินเหลือรายเดือน")
+    
+    summary_data = {
+        "รายการ": ["ค่าแรงพื้นฐาน", "เงิน OT ทั้งเดือน", "ค่ากิน+เดินทาง (รวม)", "ค่าคงที่ (ที่พัก/หนี้)", "ค่าใช้จ่ายอื่น"],
+        "จำนวนเงิน": [
+            f"{daily_rate * work_days:,.2f}",
+            f"{total_ot_money:,.2f}",
+            f"-{total_daily_expense:,.2f}",
+            f"-{monthly_fixed:,.2f}",
+            f"-{other_expense:,.2f}"
         ]
     }
-    df = pd.DataFrame(data)
-    st.table(df)
+    st.table(pd.DataFrame(summary_data))
     
     st.markdown(f"""
-    <div class="total-box">
-        <p style="margin:0; font-size:18px;">รายรับสุทธิที่ต้องจ่าย (Net Salary)</p>
-        <h2 style="margin:0; color:#2e7d32;">฿ {net_salary:,.2f}</h2>
+    <div class="result-box">
+        <p style="margin:0; font-size:20px; color:#00ff88;">💰 เดือนนี้เหลือเงินสุทธิ 💰</p>
+        <h1 style="margin:0; color:#ffffff;">฿ {net_profit:,.2f}</h1>
     </div>
     """, unsafe_allow_html=True)
-    
-    # ฟีเจอร์ AI ช่วยเขียนคำนิยมหรือบันทึกท้ายสลิป
-    if st.button("📝 ให้ AI ช่วยเขียนคำขอบคุณท้ายสลิป"):
-        import google.generativeai as genai
+
+    # ฟีเจอร์ AI แนะนำการออม
+    if st.button("💡 ให้ AI ช่วยวางแผนการเงิน"):
         try:
+            import google.generativeai as genai
             genai.configure(api_key=st.secrets["MY_API_KEY"])
             model = genai.GenerativeModel('gemini-1.5-flash')
-            prompt = f"เขียนข้อความสั้นๆ ขอบคุณและให้กำลังใจพนักงานชื่อ {emp_name} ที่ทำงานหนักในเดือนนี้ ให้รู้สึกประทับใจ"
+            prompt = f"ฉันมีเงินเหลือหลังหักค่าใช้จ่ายเดือนนี้ {net_profit} บาท จากรายได้ {total_income} บาท ช่วยแนะนำการเก็บออมหรือการใช้เงินให้คุ้มค่าหน่อย"
             response = model.generate_content(prompt)
             st.info(response.text)
         except:
-            st.write(f"ขอบคุณคุณ {emp_name} สำหรับความตั้งใจทำงานในเดือนนี้ครับ!")
+            st.write("ลองแบ่งเก็บออม 10% ของเงินที่เหลือนดูนะครับพี่ JAAO!")
 
 st.write("---")
-st.caption(f"© 2026 JAAO Payroll Studio | อัปเดตล่าสุด: {pd.Timestamp.now().strftime('%d/%m/%Y')}")
+st.caption("JAAO Daily Tracker | คิดเอง ใช้เอง เหลือเงินเก็บเอง")
