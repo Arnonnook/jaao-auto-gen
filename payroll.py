@@ -1,6 +1,30 @@
 import streamlit as st
 import pandas as pd
+import streamlit as st
+import pandas as pd
 
+# --- บรรทัดนี้สำคัญที่สุด (เปลี่ยนชื่อแท็บและไอคอน) ---
+st.set_page_config(page_title="ARNON Payroll", page_icon="💰", layout="wide")
+
+# --- โค้ดพิเศษ (ซ่อนปุ่ม Deploy และเมนู Streamlit ให้เหมือนแอปจริง) ---
+st.markdown("""
+<style>
+    /* ซ่อนแถบเมนูข้างบนและปุ่ม Deploy */
+    header {visibility: hidden;}
+    .stDeployButton {display:none;}
+    footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    
+    /* ปรับแต่งหน้าตาให้สดใสเหมือนเดิม */
+    .stApp { background-color: #000000; color: #ffffff; }
+    .main-title { color: #00ffcc !important; text-align: center; font-size: 40px !important; font-weight: 900 !important; text-shadow: 2px 2px 15px #00ffcc; }
+    .card { background-color: #1a1a1a; padding: 20px; border-radius: 20px; border: 2px solid #ff00ff; margin-bottom: 15px; }
+    .total-box { background-color: #000; padding: 25px; border-radius: 25px; border: 4px solid #00ffcc; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); }
+    label { color: #00ffcc !important; font-weight: bold; }
+</style>
+""", unsafe_allow_html=True)
+
+# (ส่วนที่เหลือของโค้ด v.7.1 เดิมของพี่...)
 # 1. ตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="Arnon คิดเงินเดือนสุดจ๊าบ v.7.1", page_icon="🤑", layout="wide")
 
