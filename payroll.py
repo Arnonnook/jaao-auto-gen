@@ -1,98 +1,152 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
-import pandas as pd
 import google.generativeai as genai
 from PIL import Image
 import io
 import time
 
 # 1. ตั้งค่าหน้าเว็บ
-st.set_page_config(page_title="ARNON AI COPY-SAFE", page_icon="📋", layout="wide")
+st.set_page_config(page_title="ARNON AI CREATIVE", page_icon="🌈", layout="wide")
 
 # --- เชื่อมต่อ Gemini API ---
 try:
     genai.configure(api_key=st.secrets["MY_API_KEY"])
 except:
-    st.error("⚠️ อย่าลืมใส่ MY_API_KEY ในช่อง Secrets นะครับ!")
+    st.error("⚠️ อย่าลืมใส่ MY_API_KEY ในช่อง Secrets นะครับพี่อานนท์!")
 
-# --- CSS สไตล์นีออน ---
+# --- CSS สไตล์สีสดใส + แอนิเมชันพื้นหลัง ---
 st.markdown("""
 <style>
+    /* พื้นหลังแบบไล่เฉดสีและเคลื่อนไหว */
+    .stApp {
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+        color: white;
+    }
+
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
     header {visibility: hidden;} .stDeployButton {display:none;}
     footer {visibility: hidden;} #MainMenu {visibility: hidden;}
-    .stApp { background-color: #000; color: #fff; }
-    .main-title { color: #00ffcc; text-align: center; font-weight: 900; text-shadow: 2px 2px 15px #00ffcc; }
-    .card { background-color: #1a1a1a; padding: 25px; border-radius: 20px; border: 2px solid #ff00ff; margin-bottom: 20px; }
-    
-    /* ปุ่มชมพู */
+
+    /* หัวข้อโปร่งแสงสวยๆ */
+    .main-title {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-radius: 20px;
+        text-align: center;
+        font-weight: 900;
+        font-size: 50px;
+        text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+        backdrop-filter: blur(10px);
+        border: 2px solid white;
+        margin-bottom: 30px;
+    }
+
+    /* การ์ดแบบกระจกใส (Glassmorphism) */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        padding: 30px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        margin-bottom: 25px;
+    }
+
+    /* ปุ่มกดสีสดใสและขยายใหญ่ */
+    .stButton>button {
+        width: 100%;
+        border-radius: 50px !important;
+        height: 70px !important;
+        font-size: 24px !important;
+        font-weight: bold !important;
+        transition: 0.3s;
+        border: none !important;
+        text-transform: uppercase;
+    }
+
+    /* ปุ่มแกะพรอพสีส้ม-ชมพู */
     .stButton>button[kind="primary"] {
-        background-color: #ff00ff !important;
+        background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%) !important;
         color: white !important;
-        height: 60px !important;
-        font-size: 20px !important;
     }
-    
-    /* ปุ่มเขียวยักษ์ */
-    .stButton>button[kind="secondary"] { 
-        background-color: #00ffcc !important; 
-        color: #000 !important; 
-        height: 80px !important;
-        font-size: 25px !important;
-        font-weight: 900 !important;
-        box-shadow: 0 0 20px #00ffcc !important;
+
+    /* ปุ่มเจนรูปสีเขียว-ฟ้า */
+    .stButton>button[kind="secondary"] {
+        background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%) !important;
+        color: white !important;
+        height: 100px !important;
+        font-size: 30px !important;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
     }
+
+    /* กล่องข้อความและ Code */
+    .stTextArea textarea { border-radius: 15px !important; }
+    .stCode { border-radius: 15px !important; }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-title">📋 ARNON AI v.10.1</h1>', unsafe_allow_html=True)
+# --- ส่วนหัวแอป ---
+st.markdown('<div class="main-title">🌈 ARNON AI CREATIVE v.11</div>', unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["💰 คิดเงินเดือน", "📸 แกะพรอพ & ก๊อปปี้"])
+# --- พื้นที่ทำงานหลัก ---
+col_main = st.columns([1])[0]
 
-with tab2:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("1️⃣ อัปโหลดและแกะพรอพ")
+with col_main:
+    # --- 1. ส่วนอัปโหลด ---
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.subheader("📸 STEP 1: อัปโหลดรูปภาพสุดจ๊าบ")
     
-    up_file = st.file_uploader("เลือกรูปภาพ:", type=["jpg", "jpeg", "png"], key="up_v101")
+    up_file = st.file_uploader("เลือกรูปจากมือถือพี่:", type=["jpg", "jpeg", "png"], key="v11_up")
     
     if up_file:
-        st.image(up_file, width=250)
-
-    if st.button("🔍 สั่ง AI แกะพรอพ", type="primary", use_container_width=True):
-        if up_file:
-            with st.status("🚀 กำลังแกะพรอพ...", expanded=True):
-                img = Image.open(up_file)
-                img.thumbnail((600, 600))
-                model = genai.GenerativeModel('gemini-2.5-flash')
+        st.image(up_file, width=300, caption="รูปที่พี่เลือก")
+        
+        if st.button("🚀 สั่ง AI แกะพรอพทันที!", type="primary"):
+            with st.status("🔮 กำลังใช้พลัง AI วิเคราะห์...", expanded=True):
                 try:
-                    resp = model.generate_content(["Describe this for AI image prompt. Text only.", img])
-                    st.session_state["p_v101"] = resp.text
+                    img = Image.open(up_file)
+                    img.thumbnail((700, 700))
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    resp = model.generate_content(["Create a highly detailed English image prompt based on this image. Text only.", img])
+                    st.session_state["p_v11"] = resp.text
+                    st.balloons() # แอนิเมชันลูกโป่งฉลอง
                 except Exception as e:
-                    st.error(f"ผิดพลาด: {e}")
-        else:
-            st.error("❌ เลือกรูปก่อนครับพี่!")
+                    st.error(f"เกิดข้อผิดพลาด: {e}")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- ส่วนที่ 2: ก๊อปปี้และเจนรูป ---
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("2️⃣ ตรวจสอบและก๊อปปี้พรอพ")
-    
-    p_now = st.session_state.get("p_v101", "")
-    
-    if p_now:
-        st.write("📋 **วิธีส่งออก:** พี่กดที่ปุ่มรูป 'กระดาษซ้อนกัน' ตรงมุมขวาของกล่องข้างล่างนี้ เพื่อก๊อปปี้ได้เลยครับ!")
-        # ใช้ st.code เพราะมันมีปุ่ม Copy มาให้ในตัวเลย ชัวร์กว่า!
-        st.code(p_now, language="text")
+    # --- 2. ส่วนผลลัพธ์และปุ่มคัดลอก ---
+    p_val = st.session_state.get("p_v11", "")
+    if p_val:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.subheader("📋 STEP 2: พรอพที่ได้ (กดปุ่มขวาบนเพื่อก็อปปี้)")
+        
+        # ใช้ st.code เพื่อปุ่มก๊อปปี้มาตรฐานที่เสถียรที่สุด
+        st.code(p_val, language="text")
         
         st.write("---")
-        st.write("✍️ **ถ้าอยากแก้พรอพก่อนเจนรูป:**")
-        final_text = st.text_area("แก้ไขพรอพตรงนี้:", value=p_now, height=100)
+        st.subheader("🎨 STEP 3: เจนรูปใหม่หรือแก้ไขพรอพ")
+        final_text = st.text_area("ปรับแต่งพรอพของพี่ตรงนี้:", value=p_val, height=150)
         
-        if st.button("🚀 สั่งเจนรูปใหม่ยักษ์!", type="secondary", use_container_width=True):
-            with st.spinner('🎨 กำลังวาด...'):
+        if st.button("✨ สั่งเจนรูปใหม่ยักษ์!", type="secondary"):
+            with st.spinner('🎨 กำลังร่ายมนตร์สร้างรูป...'):
                 clean_p = final_text.replace(" ", "%20").replace("\n", "%20")
+                # ใช้โมเดล Flux รุ่นล่าสุด
                 gen_url = f"https://pollinations.ai/p/{clean_p}?width=1024&height=1024&seed={int(time.time())}&model=flux"
-                st.image(gen_url, use_container_width=True)
+                st.image(gen_url, caption="✨ ผลงานใหม่ล่าสุดของพี่อานนท์", use_container_width=True)
+                st.snow() # แอนิเมชันหิมะตก สวยๆ
+        st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.info("💡 แกะพรอพจากด้านบนก่อนครับ ปุ่มก๊อปปี้ถึงจะขึ้น")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.info("💡 อัปโหลดรูปแล้วกดปุ่มสีส้มเพื่อเริ่มแกะพรอพนะครับพี่!")
+
+# ปุ่มรีเซ็ตสวยๆ ด้านล่าง
+if st.button("🔄 เริ่มต้นใหม่ทั้งหมด"):
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
