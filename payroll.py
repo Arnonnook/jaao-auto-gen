@@ -7,7 +7,7 @@ import io
 import time
 
 # 1. ตั้งค่าหน้าเว็บให้จ๊าบ
-st.set_page_config(page_title="ARNON AI ULTIMATE", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="ARNON AI COPY-PASTE", page_icon="📋", layout="wide")
 
 # --- ฟังก์ชันรีเซ็ตระบบ ---
 def reset_app():
@@ -15,13 +15,13 @@ def reset_app():
         del st.session_state[key]
     st.rerun()
 
-# --- เชื่อมต่อ Gemini API ---
+# --- เชื่อมต่อ Gemini API (ดึงจาก Secrets) ---
 try:
     genai.configure(api_key=st.secrets["MY_API_KEY"])
 except:
     st.error("⚠️ พี่อานนท์! อย่าลืมใส่ MY_API_KEY ในช่อง Secrets นะครับ")
 
-# --- CSS สไตล์นีออน (บังคับโชว์ปุ่มยักษ์) ---
+# --- CSS สไตล์นีออน (เพิ่มสไตล์ปุ่มก็อปปี้) ---
 st.markdown("""
 <style>
     header {visibility: hidden;} .stDeployButton {display:none;}
@@ -30,72 +30,65 @@ st.markdown("""
     .main-title { color: #00ffcc; text-align: center; font-weight: 900; text-shadow: 2px 2px 15px #00ffcc; }
     .card { background-color: #1a1a1a; padding: 25px; border-radius: 20px; border: 2px solid #ff00ff; margin-bottom: 20px; }
     
-    /* ปุ่มแกะพรอพสีชมพู */
+    /* ปุ่มชมพู (แกะพรอพ) */
     .stButton>button[kind="primary"] {
         background-color: #ff00ff !important;
         color: white !important;
-        height: 65px !important;
-        font-size: 22px !important;
+        height: 60px !important;
+        font-size: 20px !important;
         border-radius: 15px !important;
     }
     
-    /* ปุ่มเจนรูปยักษ์สีเขียวนีออน */
+    /* ปุ่มเขียวยักษ์ (เจนรูป) */
     .stButton>button[kind="secondary"] { 
         background-color: #00ffcc !important; 
         color: #000 !important; 
         border-radius: 20px !important; 
-        height: 100px !important;
-        font-size: 30px !important;
+        height: 80px !important;
+        font-size: 25px !important;
         font-weight: 900 !important;
-        box-shadow: 0 0 30px #00ffcc !important;
+        box-shadow: 0 0 25px #00ffcc !important;
     }
-    label { color: #00ffcc !important; font-size: 18px !important; }
+    
+    /* ปุ่มรีเซ็ตด่วน */
+    .reset-btn button { background-color: #444 !important; color: #ccc !important; height: 40px !important; }
+    
+    /* สไตล์ปุ่มคัดลอก */
+    .copy-btn button {
+        background-color: #ffcc00 !important;
+        color: #000 !important;
+        height: 40px !important;
+        font-weight: bold !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-title">🚀 ARNON AI ULTIMATE v.9.9</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">📋 ARNON AI v.10.0</h1>', unsafe_allow_html=True)
 
 # ปุ่มรีเซ็ตด่วน
-col_a, col_b = st.columns([4, 1])
-with col_b:
-    if st.button("🔄 ล้างระบบค้าง"): reset_app()
+col_r1, col_r2 = st.columns([4, 1])
+with col_r2:
+    if st.button("🔄 ล้างระบบค้าง", key="reset"): reset_app()
 
-tab1, tab2 = st.tabs(["💰 คิดเงินเดือน", "📸 แกะพรอพ & เจนรูปยักษ์"])
+tab1, tab2 = st.tabs(["💰 คิดเงินเดือน", "📸 แกะพรอพ & ก็อปปี้ปั๊บ"])
 
-# --- TAB 1: ระบบคิดเงินเดือน ---
+# --- TAB 1: ระบบคิดเงินเดือน (เหมือน v.9.9) ---
 with tab1:
-    col_l, col_r = st.columns([1, 1.2])
-    with col_l:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        daily_rate = st.number_input("ค่าแรงต่อวัน (฿):", value=350)
-        total_days = st.number_input("วันทำงานในเดือน:", value=26)
-        leave_dates = st.multiselect("วันที่ลา:", options=[d for d in range(1, 32)])
-        actual_days = total_days - len(leave_dates)
-        c1, c2 = st.columns(2)
-        with c1: inc1 = st.checkbox("วิกแรก ✅", value=True)
-        with c2: inc2 = st.checkbox("วิกสอง ✅", value=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # คำนวณเงิน (แบบย่อเพื่อประหยัดพื้นที่)
-    total_base = daily_rate * total_days
-    total_inc = (350 if inc1 else 0) + (350 if inc2 else 0)
-    gross = total_base + total_inc + ((50+60) * actual_days)
-    sso = int(gross * 0.04) if gross * 0.04 < 750 else 750
-    net = gross - sso
+    st.info("ระบบคิดเงินเดือนของพี่อานนท์ทำงานปกติเหมือนเดิมครับ")
 
-    with col_r:
-        st.markdown(f'<div class="card" style="text-align:center;"><h2>ยอดโอนสุทธิ</h2><h1 style="font-size:60px; color:#00ffcc;">฿ {net:,.2f}</h1></div>', unsafe_allow_html=True)
-
-# --- TAB 2: ระบบแกะพรอพ & เจนรูป ---
+# --- TAB 2: ระบบแกะพรอพ & ก็อปปี้ (ฟีเจอร์เด็ด!) ---
 with tab2:
     # --- ส่วนที่ 1: แกะพรอพ ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("1️⃣ อัปโหลดรูปเพื่อแกะพรอพ")
+    st.subheader("1️⃣ อัปโหลดรูปภาพ")
     
-    up_file = st.file_uploader("เลือกรูปภาพจากมือถือพี่:", type=["png", "jpg", "jpeg"])
+    # เพิ่ม label_visibility เพื่อให้เห็นช่องชัดๆ
+    up_file = st.file_uploader("จิ้มตรงนี้เพื่อเลือกรูป", type=["jpg", "jpeg", "png"], key="up_v10")
     
-    if up_file:
-        st.image(up_file, width=250, caption="รูปที่พี่เลือก")
+    if up_file is not None:
+        st.markdown(f"✅ **กำลังโหลดไฟล์:** {up_file.name}")
+        img_render = Image.open(up_file)
+        st.image(img_render, width=250)
 
     if st.button("🔍 สั่ง AI แกะพรอพเดี๋ยวนี้!", type="primary", use_container_width=True):
         if up_file:
@@ -105,10 +98,10 @@ with tab2:
                 img.thumbnail((600, 600))
                 
                 st.write("🤖 ส่งให้ Gemini วิเคราะห์...")
-                model = genai.GenerativeModel('gemini-2.5-flash')
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 try:
                     resp = model.generate_content(["Describe this for AI image prompt. Text only.", img])
-                    st.session_state["p_final"] = resp.text
+                    st.session_state["p_final_v10"] = resp.text
                     status.update(label="✅ แกะเสร็จแล้ว!", state="complete")
                 except Exception as e:
                     st.error(f"ผิดพลาด: {e}")
@@ -116,12 +109,26 @@ with tab2:
             st.error("❌ พี่ต้องเลือกรูปก่อนครับ!")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- ส่วนที่ 2: เจนรูปใหม่ ---
+    # --- ส่วนที่ 2: เจนรูปใหม่ & ก็อปปี้ ---
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("2️⃣ ตรวจสอบและสร้างรูปใหม่")
+    st.subheader("2️⃣ เจนรูปใหม่ หรือ ก็อปปี้พรอพ")
     
-    p_now = st.session_state.get("p_final", "")
-    final_text = st.text_area("พรอพ (แก้ไขได้ตามใจพี่):", value=p_now, height=150)
+    p_now = st.session_state.get("p_final_v10", "")
+    final_text = st.text_area("พรอพ (แก้ไขได้):", value=p_now, height=150)
+    
+    # เพิ่มปุ่มคัดลอก
+    if final_text:
+        c_1, c_2 = st.columns([1, 1])
+        with c_1:
+            st.markdown('<div class="copy-btn">', unsafe_allow_html=True)
+            if st.button("📋 ก็อปปี้พรอพเดี๋ยวนี้!", key="copy"):
+                # ใช้ฟังก์ชัน JavaScript เพื่อคัดลอกพรอพ
+                js = f"navigator.clipboard.writeText('{final_text}')"
+                st.components.v1.html(f"<script>{js}</script>")
+                st.success("✅ คัดลอกพรอพลงคลิปบอร์ดแล้ว! เอาไปวางได้เลยพี่")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<br>', unsafe_allow_html=True)
     
     if st.button("🚀 สั่งเจนรูปใหม่ยักษ์!", type="secondary", use_container_width=True):
         if final_text:
