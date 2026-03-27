@@ -6,8 +6,16 @@ import json
 st.set_page_config(page_title="JAAO YouTube SEO Pro v3.0", page_icon="🚀")
 
 # ใส่ API Key ของคุณตรงนี้
-GOOGLE_API_KEY = "AIzaSyBMa042fx1W_YJJpZndANaiCsy_s63v5p0" 
-genai.configure(api_key=GOOGLE_API_KEY)
+๊import streamlit as st
+import google.generativeai as genai
+
+# ดึง API Key จาก Secrets ของ Streamlit
+try:
+    GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=GOOGLE_API_KEY)
+except:
+    st.error("❌ ไม่พบ API Key กรุณาตั้งค่าใน Streamlit Cloud Secrets")
+
 
 # --- 2. ส่วนหัวแอป ---
 st.title("🚀 JAAO YouTube SEO Pro v3.0")
