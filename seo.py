@@ -1,76 +1,80 @@
-# -*- coding: utf-8 -*-
 import streamlit as st
 import google.generativeai as genai
-import requests
-from bs4 import BeautifulSoup
 import json
 
-# ใส่ API KEY
-genai.configure(api_key="AIzaSyBMa042fx1W_YJJpZndANaiCsy_s63v5p0")
+# --- 1. การตั้งค่าหน้าจอ ---
+st.set_page_config(page_title="JAAO YouTube SEO Pro v3.0", page_icon="🚀")
 
-st.title("🚀 SEO AI TOOL (มือถือ)")
+# ใส่ API Key ของคุณตรงนี้
+GOOGLE_API_KEY = "YOUR_GEMINI_API_KEY" 
+genai.configure(api_key=GOOGLE_API_KEY)
 
-def analyze_seo(url):
+# --- 2. ส่วนหัวแอป ---
+st.title("🚀 JAAO YouTube SEO Pro v3.0")
+st.subheader("วิเคราะห์ SEO วิดีโอเพลง/คอนเทนต์ แบบแม่นยำ")
+
+# --- 3. ส่วนรับข้อมูล (Input) ---
+with st.container():
+    lyrics_input = st.text_area("✍️ ใส่เนื้อร้องหรือรายละเอียดเพิ่มเติม (ถ้ามี):", 
+                                placeholder="วางเนื้อเพลงที่นี่...", height=200)
+    
+    genre_selection = st.selectbox("🎸 แนวเพลง/ประเภทคอนเทนต์:", 
+                                   ["ร็อก/สตริง", "ลูกทุ่ง/หมอลำ", "ป๊อป/อินดี้", "ฮิปฮอป/แร็ป", "Vlog/รีวิว", "สอนใช้งาน/Education"])
+
+# --- 4. ฟังก์ชันวิเคราะห์ SEO ---
+def analyze_seo(text, genre):
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    # Prompt ที่รัดกุมเพื่อป้องกัน AI ตอบนอกเรื่องหรือส่งค่าว่าง
+    prompt = f"""
+    คุณคือผู้เชี่ยวชาญด้าน YouTube SEO สำหรับตลาดเมืองไทย
+    ข้อมูลที่ให้มา: {text}
+    หมวดหมู่: {genre}
+
+    ภารกิจ: วิเคราะห์และสร้างข้อมูล SEO โดยตอบกลับเป็นรูปแบบ JSON เท่านั้น ห้ามมีข้อความอื่นปน
+    โครงสร้าง JSON:
+    {{
+      "title": "ชื่อคลิปที่ดึงดูดและมี Keyword สำคัญ 1-2 ชื่อ",
+      "description": "คำอธิบายคลิปสั้นๆ แต่น่าสนใจ พร้อมใส่ Keyword",
+      "tags": "ลิสต์คำค้นหา 15 คำ แยกด้วยเครื่องหมายจุลภาค , ",
+      "hashtags": "#แท็ก1 #แท็ก2 #แท็ก3"
+    }}
+    """
+    
     try:
-        res = requests.get(url, timeout=10)
-        soup = BeautifulSoup(res.text, "html.parser")
-
-        title = soup.title.string if soup.title else "No title"
-
-        meta = soup.find("meta", attrs={"name": "description"})
-        desc = meta["content"] if meta else "No description"
-
-        h1 = [h.text for h in soup.find_all("h1")]
-
-        content = soup.get_text()[:2000]
-
-        model = genai.GenerativeModel("gemini-2.5-flash")
-
-        prompt = f"""
-        Analyze SEO:
-
-        Title: {title}
-        Description: {desc}
-        H1: {h1}
-        Content: {content}
-
-        Return JSON:
-        {{
-          "score": "",
-          "issues": [],
-          "better_title": "",
-          "better_description": "",
-          "keywords": []
-        }}
-        """
-
         response = model.generate_content(prompt)
-
-        return title, desc, h1, response.text
-
+        # ล้าง Tag ```json ออกถ้า AI ใส่มา
+        clean_response = response.text.replace('```json', '').replace('```', '').strip()
+        return json.loads(clean_response)
     except Exception as e:
-        return None, None, None, str(e)
+        return None
 
-url = st.text_input("ใส่ URL", "https://example.com")
-
-if st.button("วิเคราะห์ SEO"):
-    title, desc, h1, ai = analyze_seo(url)
-
-    if title is None:
-        st.error(ai)
+# --- 5. ปุ่มกดและส่วนแสดงผล ---
+if st.button("🚀 วิเคราะห์ SEO จากวิดีโอนี้", type="primary", use_container_width=True):
+    if lyrics_input.strip() == "":
+        st.warning("⚠️ กรุณาใส่เนื้อหาหรือรายละเอียดก่อนครับ")
     else:
-        st.success("เสร็จแล้ว!")
+        with st.spinner('กำลังวิเคราะห์ด้วย Gemini AI...'):
+            result = analyze_seo(lyrics_input, genre_selection)
+            
+            if result:
+                st.success("✅ วิเคราะห์เสร็จเรียบร้อยครับ!")
+                
+                # แสดงผลแบ่งเป็นสัดส่วน
+                st.markdown("### 🎯 ชื่อที่แนะนำ:")
+                st.info(result.get("title", "ไม่พบข้อมูล"))
+                
+                st.markdown("### 📝 คำอธิบาย (Description):")
+                st.write(result.get("description", "ไม่พบข้อมูล"))
+                
+                st.markdown("### 🏷️ Tags (สะอาด ก๊อปไปวางได้เลย):")
+                st.code(result.get("tags", "ไม่พบข้อมูล"))
+                
+                st.markdown("### #️⃣ Hashtags:")
+                st.code(result.get("hashtags", "ไม่พบข้อมูล"))
+            else:
+                st.error("❌ เกิดข้อผิดพลาดในการวิเคราะห์ โปรดลองใหม่อีกครั้ง")
 
-        st.write("📌 Title:", title)
-        st.write("📝 Description:", desc)
-        st.write("🔎 H1:", h1)
-
-        try:
-            data = json.loads(ai)
-            st.metric("SEO Score", data["score"])
-            st.write("❗ Issues:", data["issues"])
-            st.write("✨ Title ใหม่:", data["better_title"])
-            st.write("📝 Description ใหม่:", data["better_description"])
-            st.write("🔑 Keywords:", data["keywords"])
-        except:
-            st.code(ai)
+# --- 6. ส่วนท้ายหน้า ---
+st.divider()
+st.caption("พัฒนาโดย JAAO AI Assistant | ขุมพลังจาก Gemini 1.5 Flash")
