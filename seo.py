@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import json
 
 # ใส่ API KEY
-genai.configure(api_key="YOUR_API_KEY")
+genai.configure(api_key="AIzaSyBMa042fx1W_YJJpZndANaiCsy_s63v5p0")
 
 st.title("🚀 SEO AI TOOL (มือถือ)")
 
