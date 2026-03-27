@@ -62,7 +62,7 @@ with tab2:
             with st.status("🚀 กำลังแกะพรอพ...", expanded=True):
                 img = Image.open(up_file)
                 img.thumbnail((600, 600))
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 try:
                     resp = model.generate_content(["Describe this for AI image prompt. Text only.", img])
                     st.session_state["p_v101"] = resp.text
