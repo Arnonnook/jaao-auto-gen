@@ -105,7 +105,7 @@ with tab2:
                 img.thumbnail((600, 600))
                 
                 st.write("🤖 ส่งให้ Gemini วิเคราะห์...")
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 try:
                     resp = model.generate_content(["Describe this for AI image prompt. Text only.", img])
                     st.session_state["p_final"] = resp.text
