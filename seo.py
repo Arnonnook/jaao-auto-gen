@@ -6,7 +6,7 @@ import json
 st.set_page_config(page_title="JAAO YouTube SEO Pro v3.0", page_icon="🚀")
 
 # ใส่ API Key ของคุณตรงนี้
-GOOGLE_API_KEY = "YOUR_GEMINI_API_KEY" 
+GOOGLE_API_KEY = "AIzaSyBMa042fx1W_YJJpZndANaiCsy_s63v5p0" 
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # --- 2. ส่วนหัวแอป ---
@@ -23,7 +23,7 @@ with st.container():
 
 # --- 4. ฟังก์ชันวิเคราะห์ SEO ---
 def analyze_seo(text, genre):
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     
     # Prompt ที่รัดกุมเพื่อป้องกัน AI ตอบนอกเรื่องหรือส่งค่าว่าง
     prompt = f"""
