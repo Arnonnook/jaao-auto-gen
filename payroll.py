@@ -113,7 +113,7 @@ with col_main:
                 try:
                     img = Image.open(up_file)
                     img.thumbnail((700, 700))
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    model = genai.GenerativeModel('gemini-2.5-flash')
                     resp = model.generate_content(["Create a highly detailed English image prompt based on this image. Text only.", img])
                     st.session_state["p_v11"] = resp.text
                     st.balloons() # แอนิเมชันลูกโป่งฉลอง
