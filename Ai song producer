@@ -1,0 +1,48 @@
+import google.generativeai as genai
+
+# 1. ตั้งค่า API Key ของคุณ
+# ไปเอา Key ได้ที่: https://aistudio.google.com/
+API_KEY = "ใส่_API_KEY_ของคุณที่นี่"
+genai.configure(api_key=API_KEY)
+
+def generate_song_with_ai(genre, topic):
+    # เลือก Model (gemini-1.5-flash จะเร็วและประหยัด)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    # 2. ออกแบบ Prompt ให้ AI เข้าใจบริบทเพลงไทยและคอร์ด
+    prompt = f"""
+    คุณเป็นนักแต่งเพลงมืออาชีพในไทย 
+    ช่วยแต่งเนื้อเพลงแนว {genre} ในหัวข้อ "{topic}" 
+    โดยมีเงื่อนไขดังนี้:
+    1. ใส่คอร์ดกีตาร์กำกับไว้เหนือคำร้อง (เช่น [C] [Am] [F] [G])
+    2. ใช้ชุดคอร์ดที่ทันสมัยและไพเราะตามสไตล์เพลงไทยปัจจุบัน
+    3. โครงสร้างเพลงต้องมี: Verse 1, Pre-Chorus, Chorus, และ Outro
+    4. ภาษาที่ใช้ต้องสละสลวย เข้ากับวัยรุ่นหรือคนฟังกลุ่มเป้าหมายในไทย
+    """
+
+    response = model.generate_content(prompt)
+    return response.text
+
+# --- หน้าตาโปรแกรม (Simple UI) ---
+print("--- ระบบแต่งเพลง AI JAAO Studio (API Version) ---")
+print("เลือกแนวเพลงไทยตามกระแส:")
+print("1. T-Pop (สดใส/แอบรัก)")
+print("2. ลูกทุ่งอินดี้ (เศร้า/อกหัก/กินใจ)")
+print("3. Thai City Pop (เหงาๆ/ละมุน)")
+print("4. Rap/Hip-hop ไทย (ดุดัน/เล่าเรื่อง)")
+
+genres = {"1": "T-Pop", "2": "ลูกทุ่งอินดี้", "3": "Thai City Pop", "4": "Rap/Hip-hop ไทย"}
+choice = input("เลือกเบอร์ (1-4): ")
+user_topic = input("อยากให้เพลงเกี่ยวกับอะไร (เช่น รักครั้งแรก, อกหักตอนสงกรานต์): ")
+
+selected_genre = genres.get(choice, "T-Pop")
+
+print("\n--- AI กำลังรังสรรค์เพลงให้จ๊ะโอ๋ รอสักครู่... ---\n")
+
+try:
+    result = generate_song_with_ai(selected_genre, user_topic)
+    print(result)
+except Exception as e:
+    print(f"เกิดข้อผิดพลาด: {e} (ตรวจสอบ API Key หรือการเชื่อมต่ออินเทอร์เน็ต)")
+
+print("\n--- จบการทำงาน ---")
