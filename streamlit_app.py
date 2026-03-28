@@ -1,31 +1,61 @@
 import streamlit as st
 import google.generativeai as genai
 
-st.set_page_config(page_title="JAAO Auto Gen", page_icon="🎵", layout="wide")
+# --- 1. SET PAGE & RAINBOW STYLE ---
+st.set_page_config(page_title="JAAO Rainbow Song", page_icon="🌈", layout="wide")
 
-# --- UI Custom Style ---
 st.markdown("""
 <style>
-    .stApp { background-color: #fcfcfc; }
-    .stButton>button { background: linear-gradient(45deg, #00B4DB, #0083B0); color: white; border-radius: 12px; height: 3.5em; width: 100%; font-weight: bold; border: none; }
-    .style-card { background: #e3f2fd; padding: 15px; border-radius: 10px; border-left: 5px solid #0083B0; margin-bottom: 20px; }
-    .lyrics-container { background-color: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    /* พื้นหลังไล่เฉดสีรุ้งอ่อนๆ */
+    .stApp {
+        background: linear-gradient(120deg, #ff9a9e 0%, #fecfef 20%, #feada6 40%, #fbc2eb 60%, #a1c4fd 80%, #c2e9fb 100%);
+    }
+    /* หัวข้อสีรุ้ง */
+    .rainbow-text {
+        font-weight: bold;
+        background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 40px;
+    }
+    /* ปุ่มกดสีรุ้ง */
+    .stButton>button {
+        background: linear-gradient(45deg, #ff2400, #ff8c00, #ffeb00, #32cd32, #00ced1, #1e90ff, #9370db);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    /* กล่อง Style Analysis */
+    .analysis-card {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 15px;
+        border-left: 10px solid violet;
+        margin-bottom: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar Input ---
+# --- 2. SIDEBAR (INPUT) ---
 with st.sidebar:
-    st.title("🎵 JAAO Auto Gen")
-    api_key = st.text_input("Gemini API Key:", type="password")
+    st.markdown("<h1 class='rainbow-text'>JAAO Studio</h1>", unsafe_allow_html=True)
+    api_key = st.text_input("ใส่ Gemini API Key:", type="password")
     st.divider()
     
-    artist_name = st.text_input("Artist Name:", placeholder="e.g. JAAO, WARIN")
-    song_topic = st.text_input("Song Topic:", placeholder="e.g. Rain in Bangkok")
+    artist_name = st.text_input("ชื่อศิลปิน (Artist Name):", placeholder="เช่น จ๊ะโอ๋, WARIN")
+    song_topic = st.text_input("หัวข้อเพลง (Topic):", placeholder="เช่น รักครั้งแรกที่สยาม")
     
     st.divider()
     
-    st.subheader("Select Music Style")
-    music_main_style = st.selectbox("Category:", ["Pop", "Country / Folk", "Indie / Rock", "Hip Hop / R&B"])
+    # Music Style Selection (English Only)
+    st.subheader("🎵 Select Music Style")
+    main_style = st.selectbox("Category:", ["Pop", "Country / Folk", "Indie / Rock", "Hip Hop / R&B"])
     
     sub_styles = {
         "Pop": ["T-Pop Idol", "Modern Ballad", "Synth Pop", "City Pop"],
@@ -33,61 +63,55 @@ with st.sidebar:
         "Indie / Rock": ["Alternative Indie", "Shoegaze", "Thai Rock", "Modern Rock"],
         "Hip Hop / R&B": ["Trap", "Old School Hip Hop", "R&B / Soul", "Lo-fi Hip Hop"]
     }
-    selected_style = st.selectbox("Specific Genre:", sub_styles[music_main_style])
+    selected_style = st.selectbox("Specific Genre:", sub_styles[main_style])
 
-    generate_btn = st.button("Generate & Analyze Style ✨")
+    generate_btn = st.button("รังสรรค์เพลงสีรุ้ง ✨")
 
-# --- Main Display Area ---
-st.header(f"🎧 Producer: {artist_name if artist_name else 'JAAO Studio'}")
+# --- 3. MAIN DISPLAY ---
+st.markdown(f"<h2 style='color: white; text-shadow: 2px 2px 4px #000;'>🎧 Producer: {artist_name if artist_name else 'JAAO Studio'}</h2>", unsafe_allow_html=True)
 
 if generate_btn:
     if not api_key:
-        st.error("Please enter API Key")
+        st.error("กรุณาใส่ API Key ก่อนนะครับ")
     elif not song_topic:
-        st.error("Please enter Song Topic")
+        st.error("กรุณาใส่หัวข้อเพลงด้วยครับ")
     else:
-        with st.spinner('AI is composing and analyzing...'):
+        with st.spinner('กำลังปรุงแต่งบทเพลงสีรุ้งให้จ๊ะโอ๋...'):
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-2.5-flash')
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 
-                # สั่งให้ AI เจนทั้งเนื้อเพลงและบทวิเคราะห์สไตล์
+                # สั่งให้ AI เจนเนื้อเพลงและสรุปสไตล์
                 prompt = f"""
-                Write Thai song lyrics for artist '{artist_name}' in style '{selected_style}' about '{song_topic}'.
+                แต่งเนื้อเพลงไทยให้ศิลปินชื่อ '{artist_name}' ในสไตล์ '{selected_style}' เรื่อง '{song_topic}'
+                โดยให้สรุป Style Summary เป็นภาษาอังกฤษไว้ที่ส่วนท้ายของเนื้อเพลงด้วย
                 
-                After the lyrics, provide a brief 'Style Summary' in English including:
-                - Estimated Tempo (BPM)
-                - Overall Mood
-                - Recommended Instruments
-                
-                Requirements:
-                1. Include guitar chords (e.g. [C][Am]) ABOVE the lyrics.
-                2. Structure: Verse, Chorus, Bridge, etc.
-                3. Use modern Thai language.
+                เงื่อนไข:
+                1. ใส่คอร์ดกีตาร์ไว้เหนือเนื้อร้อง [C][Am][F][G]
+                2. โครงสร้าง: Verse, Chorus, Bridge, Outro
+                3. ภาษาไทยทันสมัย สไตล์ {selected_style}
                 """
                 
                 response = model.generate_content(prompt)
-                full_text = response.text
                 
-                # แสดงส่วนวิเคราะห์สไตล์ (Style Analysis)
+                # ส่วนแสดงผล Style Analysis
                 st.markdown(f"""
-                <div class="style-card">
-                    <h4>✨ Song Style Analysis</h4>
+                <div class="analysis-card">
+                    <h3 style="margin:0;">✨ Style Analysis</h3>
                     <p><b>Genre:</b> {selected_style} | <b>Artist:</b> {artist_name if artist_name else 'JAAO'}</p>
-                    <p><i>The lyrics below include chords and can be copied immediately.</i></p>
+                    <p style="color: #666;">ก๊อปปี้เนื้อเพลงและคอร์ดได้ที่ช่องด้านล่างนี้เลยครับ 👇</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ส่วนแสดงผลเนื้อเพลง (Copyable Code Block)
-                st.subheader("📝 Lyrics & Chords")
-                st.code(full_text, language="markdown")
+                # ช่องเนื้อเพลงที่ก๊อปปี้ได้ทันที
+                st.code(response.text, language="markdown")
                 
-                st.success("Successfully Generated! Click the 'Copy' icon at the top right of the lyrics box.")
+                st.balloons() # เอฟเฟกต์ลูกโป่งฉลองแต่งเพลงเสร็จ
                 
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"เกิดข้อผิดพลาด: {e}")
 else:
-    st.info("Fill in the details on the left and click the button to start.")
+    st.info("ใส่รายละเอียดทางซ้าย แล้วกดปุ่มสีรุ้งเพื่อเริ่มเลย!")
 
-st.divider()
-st.caption("JAAO Studio - Your Creative Music Partner")
+st.markdown("---")
+st.caption("🌈 JAAO Rainbow Auto Gen | Powered by Gemini AI")
