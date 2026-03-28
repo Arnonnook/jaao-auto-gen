@@ -9,7 +9,7 @@ api_key = st.text_input("กรุณาใส่ Gemini API Key:", type="passwo
 if api_key:
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         topic = st.text_input("อยากแต่งเพลงเรื่องอะไร:")
         if st.button("เริ่มแต่งเพลง"):
