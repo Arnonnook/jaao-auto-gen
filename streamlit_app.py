@@ -49,7 +49,7 @@ if generate_btn:
         with st.spinner('AI is composing and analyzing...'):
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 
                 # สั่งให้ AI เจนทั้งเนื้อเพลงและบทวิเคราะห์สไตล์
                 prompt = f"""
