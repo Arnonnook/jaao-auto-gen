@@ -158,3 +158,12 @@ if generate_btn:
 else:
     # หน้าแรกตอนเปิดแอป
     st.markdown("""
+    <div style='text-align: center; padding: 80px 20px;'>
+        <h1 style='font-size: 50px;'>🌈</h1>
+        <h2 style='color: #4facfe;'>พร้อมสร้างเพลงใหม่หรือยัง?</h2>
+        <p style='opacity: 0.7;'>กรอกข้อมูลด้านซ้ายมือ แล้วกดปุ่มรังสรรค์เพลงได้เลยครับ</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.divider()
+st.caption("© 2026 JAAO Studio x Suno Helper | Powered by Gemini 1.5 Flash")
