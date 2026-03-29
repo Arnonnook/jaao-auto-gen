@@ -2,148 +2,159 @@ import streamlit as st
 import google.generativeai as genai
 import re
 
-# --- 1. SETTINGS & THEME ---
+# --- 1. SETTINGS & THEME (Pro Appearance) ---
 st.set_page_config(page_title="JAAO Suno Helper Pro", page_icon="🎸", layout="wide")
 
-# ปรับ CSS ให้ดูสะอาดและเป็นมืออาชีพมากขึ้น (Glassmorphism Style)
 st.markdown("""
 <style>
-    .stApp { background: linear-gradient(135deg, #1e1e2f, #2a2a40); color: #ffffff; }
-    [data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.05); }
+    .stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: #ffffff; }
+    [data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.05); border-right: 1px solid rgba(255,255,255,0.1); }
     .rainbow-title { 
         font-weight: 800; 
-        background: linear-gradient(to right, #ff3366, #ff9933, #33ccff, #9933ff); 
+        background: linear-gradient(to right, #00f2fe, #4facfe, #9933ff, #ff3366); 
         -webkit-background-clip: text; 
         -webkit-text-fill-color: transparent; 
-        font-size: 42px; 
-        margin-bottom: 20px;
+        font-size: 40px; 
+        margin-bottom: 10px;
     }
     .stButton>button { 
         width: 100%;
-        background: linear-gradient(90deg, #ff3366, #9933ff); 
-        color: white; border-radius: 12px; border: none; 
-        padding: 15px; font-size: 18px; transition: 0.3s;
+        background: linear-gradient(90deg, #00f2fe, #4facfe); 
+        color: #000; border-radius: 12px; border: none; 
+        padding: 12px; font-weight: bold; transition: 0.3s;
     }
-    .stButton>button:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4); }
-    .copy-section { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
-    .label-tag { background: #33ccff; color: #000; padding: 2px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
+    .stButton>button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4); color: #fff; }
+    .copy-section { background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
+    .label-tag { background: #4facfe; color: #000; padding: 2px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; margin-bottom: 8px; display: inline-block; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. LOGIC FUNCTIONS ---
-def clean_text(text, tag):
-    """ช่วยดึงข้อมูลตาม Tag ที่กำหนดอย่างแม่นยำ"""
+# --- 2. HELPER FUNCTIONS ---
+def extract_content(text, tag):
+    """ฟังก์ชันดึงเนื้อหาตาม Tag แบบ Case-insensitive และรองรับหลายรูปแบบ"""
     pattern = f"{tag}:(.*?)(?=(TITLE:|STYLE:|LYRICS:|$))"
     match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
     return match.group(1).strip() if match else ""
 
-# --- 3. SIDEBAR ---
+# --- 3. SIDEBAR (Inputs) ---
 with st.sidebar:
     st.markdown("<h1 class='rainbow-title'>JAAO Studio</h1>", unsafe_allow_html=True)
-    api_key = st.text_input("Gemini API Key:", type="password", help="รับได้ที่ Google AI Studio")
+    st.caption("AI Songwriting Assistant v2.5")
+    api_key = st.text_input("Gemini API Key:", type="password", help="รับ Key ฟรีที่ aistudio.google.com")
     st.divider()
     
-    artist_name = st.text_input("Artist Name:", value="JAAO", placeholder="ชื่อศิลปิน")
-    song_topic = st.text_area("Topic / Story:", placeholder="เล่าเรื่องราวที่อยากให้เป็นเพลง...", height=100)
+    artist_name = st.text_input("Artist Name:", value="JAAO")
+    song_topic = st.text_area("Topic / Story:", placeholder="เช่น คิดถึงแฟนเก่าที่เลิกกันไปนานแล้ว...", height=100)
     
-    col1, col2 = st.columns(2)
-    with col1:
-        main_style = st.selectbox("Category:", ["Pop", "Country / Folk", "Indie / Rock", "Hip Hop / R&B"])
-    with col2:
-        sub_styles = {
-            "Pop": ["T-Pop", "Modern Ballad", "Synth Pop", "City Pop"],
-            "Country / Folk": ["Thai Country Indie", "Modern Luk Thung", "Folk Song"],
-            "Indie / Rock": ["Alternative", "Shoegaze", "Thai Rock", "Post-Rock"],
-            "Hip Hop / R&B": ["Trap", "Old School", "R&B / Soul", "Lo-fi"]
-        }
-        selected_style = st.selectbox("Genre:", sub_styles[main_style])
+    main_style = st.selectbox("Category:", ["Pop", "Country / Folk", "Indie / Rock", "Hip Hop / R&B"])
+    sub_styles = {
+        "Pop": ["T-Pop Idol", "Modern Ballad", "Synth Pop", "City Pop"],
+        "Country / Folk": ["Thai Country Indie", "Modern Luk Thung", "Puea Chiwit"],
+        "Indie / Rock": ["Alternative Indie", "Thai Rock", "Post-Rock"],
+        "Hip Hop / R&B": ["Trap", "R&B / Soul", "Lo-fi Hip Hop"]
+    }
+    selected_style = st.selectbox("Specific Genre:", sub_styles[main_style])
+    
+    with st.expander("⚙️ Advanced Settings"):
+        tempo = st.select_slider("Tempo:", options=["Slow", "Moderate", "Fast"], value="Moderate")
+        mood = st.multiselect("Mood:", ["Sad", "Happy", "Chill", "Energetic", "Dark"], default=["Happy"])
 
-    tempo = st.select_slider("Tempo:", options=["Slow", "Moderate", "Fast"], value="Moderate")
-    mood = st.multiselect("Mood:", ["Sad", "Happy", "Energetic", "Dark", "Romantic"], default=["Happy"])
+    generate_btn = st.button("✨ เริ่มรังสรรค์ผลงาน")
 
-    generate_btn = st.button("🚀 รังสรรค์เพลง Pro")
-
-# --- 4. MAIN CONTENT ---
+# --- 4. MAIN CONTENT (Logic & Display) ---
 if generate_btn:
     if not api_key:
-        st.warning("⚠️ กรุณาใส่ API Key ก่อนเริ่มงาน")
+        st.warning("⚠️ กรุณากรอก API Key ในแถบด้านซ้าย")
     elif not song_topic:
-        st.warning("⚠️ อย่าลืมใส่เนื้อหาเพลงนะครับ")
+        st.warning("⚠️ กรุณาบอกเรื่องราวของเพลงที่คุณอยากแต่ง")
     else:
         try:
+            # Step A: Setup & Model Discovery
             genai.configure(api_key=api_key)
             
-            # --- ส่วนที่เพิ่มเข้ามาใหม่เพื่อความชัวร์ ---
-            # ค้นหา List ของ Model ที่รองรับการสร้างเนื้อหา (Generate Content)
-            available_models = [
-                m.name for m in genai.list_models() 
-                if 'generateContent' in m.supported_generation_methods
-            ]
+            # ค้นหาโมเดลที่ใช้งานได้อัตโนมัติ (แก้ปัญหา 404)
+            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
             
-            # ลำดับความสำคัญ: ลองหา 1.5 Flash ก่อน ถ้าไม่มีเอาตัวอื่นที่ใช้ได้ตัวแรก
-            selected_model_name = ""
+            # ลำดับความสำคัญ: 1.5 Flash -> 1.5 Pro -> ตัวแรกที่เจอ
             if "models/gemini-1.5-flash" in available_models:
-                selected_model_name = "models/gemini-1.5-flash"
-            elif "models/gemini-pro" in available_models:
-                selected_model_name = "models/gemini-pro"
-            elif available_models:
-                selected_model_name = available_models[0]
+                model_name = "models/gemini-1.5-flash"
+            elif "models/gemini-1.5-pro" in available_models:
+                model_name = "models/gemini-1.5-pro"
             else:
+                model_name = available_models[0] if available_models else ""
+
+            if not model_name:
                 st.error("❌ ไม่พบ Model ที่รองรับใน API Key นี้")
                 st.stop()
-            
-            model = genai.GenerativeModel(selected_model_name)
-            # ---------------------------------------
-            
-            with st.spinner(f'🪄 กำลังใช้ {selected_model_name} ร่ายมนตร์...'):
-                response = model.generate_content(prompt)
-                res_text = response.text
-                
-                # ... (ส่วนการ Parsing ข้อมูลเดิมของคุณ) ...
-            
-            with st.spinner('🪄 กำลังร่ายมนตร์สร้างบทเพลง...'):
-                response = model.generate_content(prompt)
-                res_text = response.text
-                
-                # ดึงข้อมูลมาแสดงผล
-                title = clean_text(res_text, "TITLE")
-                style_tags = clean_text(res_text, "STYLE")
-                lyrics = clean_text(res_text, "LYRICS")
 
-            st.balloons()
-            
-            # --- Displaying Results ---
-            st.success(f"🎵 ผลงานเพลงสำหรับคุณ {artist_name} พร้อมแล้ว!")
-            
-            row1_col1, row1_col2 = st.columns([1, 2])
-            
-            with row1_col1:
-                st.markdown("<div class='copy-section'>", unsafe_allow_html=True)
-                st.markdown("<span class='label-tag'>SONG TITLE</span>", unsafe_allow_html=True)
-                st.code(title if title else "Untitled Song")
+            # Step B: Define Prompt (ต้องอยู่ก่อนเรียกใช้)
+            prompt = f"""
+            You are a professional Thai songwriter. Create a song for Suno AI.
+            Artist: {artist_name}
+            Topic: {song_topic}
+            Genre: {selected_style}
+            Tempo: {tempo}
+            Mood: {', '.join(mood)}
+
+            Output format (Strictly):
+            TITLE: [Song Name in Thai]
+            STYLE: [English Suno Tags: genre, mood, tempo, vocal type, instruments]
+            LYRICS:
+            [Structure: [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], [Chorus], [Outro]]
+            (Include Thai lyrics with guitar chords like [C][Am] above the lyrics)
+            """
+
+            # Step C: Generate
+            with st.spinner(f'🪄 กำลังร่ายมนตร์ด้วย {model_name}...'):
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(prompt)
+                res_text = response.text
                 
-                st.markdown("<span class='label-tag'>SUNO STYLE PROMPT</span>", unsafe_allow_html=True)
-                st.code(f"Thai, {style_tags}", language="markdown")
-                st.info("💡 นำไปวางในช่อง 'Style of Music' ใน Suno Custom Mode")
+                # Step D: Parsing Data
+                title_final = extract_content(res_text, "TITLE")
+                style_final = extract_content(res_text, "STYLE")
+                lyrics_final = extract_content(res_text, "LYRICS")
+
+            # Step E: UI Display
+            st.balloons()
+            st.success(f"🎵 รังสรรค์เพลง '{title_final}' สำเร็จ!")
+
+            col_info, col_lyrics = st.columns([1, 1.5])
+
+            with col_info:
+                st.markdown("<div class='copy-section'>", unsafe_allow_html=True)
+                st.markdown("<span class='label-tag'>1. SONG TITLE</span>", unsafe_allow_html=True)
+                st.code(title_final if title_final else "Untitled")
+                
+                st.markdown("<span class='label-tag'>2. SUNO STYLE PROMPT</span>", unsafe_allow_html=True)
+                st.code(f"Thai, {style_final}", language="markdown")
+                st.caption("💡 ก๊อปปี้ไปวางในช่อง 'Style of Music' ใน Suno")
+                st.markdown("</div>", unsafe_allow_html=True)
+                
+                # เพิ่ม Bonus: Prompt สำหรับสร้างปกเพลง
+                st.markdown("<div class='copy-section'>", unsafe_allow_html=True)
+                st.markdown("<span class='label-tag'>🎨 ALBUM ART PROMPT</span>", unsafe_allow_html=True)
+                st.code(f"Album cover art, {selected_style} music style, theme about {song_topic}, high quality, artistic", language="markdown")
                 st.markdown("</div>", unsafe_allow_html=True)
 
-            with row1_col2:
+            with col_lyrics:
                 st.markdown("<div class='copy-section'>", unsafe_allow_html=True)
-                st.markdown("<span class='label-tag'>LYRICS & CHORDS</span>", unsafe_allow_html=True)
-                st.code(lyrics, language="markdown")
+                st.markdown("<span class='label-tag'>3. LYRICS & CHORDS</span>", unsafe_allow_html=True)
+                if lyrics_final:
+                    st.code(lyrics_final, language="markdown")
+                else:
+                    st.code(res_text, language="markdown") # Fallback กรณี Regex พลาด
                 st.markdown("</div>", unsafe_allow_html=True)
 
         except Exception as e:
-            st.error(f"❌ เกิดข้อผิดพลาดทางเทคนิค: {str(e)}")
+            error_str = str(e)
+            if "429" in error_str:
+                st.error("❌ โควตาฟรีหมด (429)! กรุณารอ 1 นาทีแล้วลองใหม่ หรือใช้ API Key แบบเสียเงินครับ")
+            elif "404" in error_str:
+                st.error("❌ ไม่พบโมเดล (404)! ระบบพยายามสลับโมเดลให้อัตโนมัติแล้ว แต่ยังไม่พบตัวที่ใช้ได้")
+            else:
+                st.error(f"❌ เกิดข้อผิดพลาด: {error_str}")
 
 else:
-    # หน้า Welcome ตอนยังไม่ได้กดปุ่ม
+    # หน้าแรกตอนเปิดแอป
     st.markdown("""
-    <div style='text-align: center; padding: 100px;'>
-        <h2 style='opacity: 0.5;'>🎨 เริ่มต้นสร้างสรรค์ผลงานของคุณจากแถบด้านซ้าย</h2>
-        <p style='opacity: 0.3;'>ระบบจะช่วยคิดชื่อเพลง, สไตล์ที่ Suno เข้าใจง่าย และเนื้อเพลงพร้อมคอร์ด</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("---")
-st.caption("Developed by JAAO Studio | 🚀 Version 2.0 (Pro Mode)")
