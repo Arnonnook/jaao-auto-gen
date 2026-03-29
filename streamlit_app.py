@@ -4,22 +4,22 @@ from groq import Groq
 import re
 
 # --- 1. SETTINGS & THEME ---
-st.set_page_config(page_title="JAAO Auto-Suno Pro", page_icon="🌈", layout="wide")
+st.set_page_config(page_title="JAAO Auto-Suno Pro", page_icon="🌈", layout="centered") # ปรับเป็น centered เพื่อให้ดูง่าย
 
 st.markdown("""
 <style>
     .stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: #ffffff; }
     [data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.05); }
-    .rainbow-title { font-weight: 800; background: linear-gradient(to right, #00f2fe, #4facfe, #9933ff, #ff3366); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 38px; }
+    .rainbow-title { font-weight: 800; background: linear-gradient(to right, #00f2fe, #4facfe, #9933ff, #ff3366); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 38px; text-align: center; }
     .stButton>button { width: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); color: #000; border-radius: 12px; font-weight: bold; border: none; padding: 10px; }
-    .copy-section { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 15px; }
-    .label-tag { background: #4facfe; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 5px; display: inline-block; }
+    .copy-section { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
+    .label-tag { background: #4facfe; color: #000; padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-bottom: 8px; display: inline-block; }
     .suno-button { 
-        display: inline-block; padding: 12px 24px; background: linear-gradient(90deg, #ff00cc, #3333ff); 
-        color: white !important; text-decoration: none; border-radius: 10px; font-weight: bold; 
-        text-align: center; margin-top: 10px; width: 100%; transition: 0.3s;
+        display: block; padding: 15px; background: linear-gradient(90deg, #ff00cc, #3333ff); 
+        color: white !important; text-decoration: none; border-radius: 12px; font-weight: bold; 
+        text-align: center; margin: 20px 0; transition: 0.3s; font-size: 18px;
     }
-    .suno-button:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(255, 0, 204, 0.4); }
+    .suno-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255, 0, 204, 0.4); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -43,14 +43,16 @@ with st.sidebar:
 
     st.divider()
     artist_name = st.text_input("Artist Name:", value="JAAO")
-    song_topic = st.text_area("หัวข้อเพลง (Story):", placeholder="ใส่เรื่องราวที่อยากให้ AI คำนวณ...")
+    song_topic = st.text_area("หัวข้อเพลง (Story):", placeholder="เช่น รักครั้งแรกที่โรงเรียน...")
     
     main_style = st.selectbox("แนวเพลงหลัก:", ["Pop", "Country / Folk", "Indie / Rock", "Hip Hop / R&B"])
     selected_style = st.selectbox("สไตล์เฉพาะ:", ["T-Pop", "Modern Ballad", "Trap", "Folk Song", "Thai Rock"])
     
     generate_btn = st.button("🚀 คำนวณและสร้างเพลง")
 
-# --- 4. MAIN CONTENT ---
+# --- 4. MAIN CONTENT AREA ---
+st.markdown("<h1 class='rainbow-title'>JAAO Auto-Suno</h1>", unsafe_allow_html=True)
+
 if generate_btn:
     if not api_key:
         st.warning(f"⚠️ กรุณาใส่ API Key ของ {ai_choice}")
@@ -60,7 +62,7 @@ if generate_btn:
         prompt = f"""Task: Create a song for Suno AI. Artist: {artist_name}, Topic: {song_topic}, Genre: {selected_style}. 
         Output Format: TITLE: [Thai Title], STYLE: [English Tags], LYRICS: [Thai with Chords]"""
         try:
-            with st.spinner(f'🪄 {ai_choice} กำลังคำนวณ...'):
+            with st.spinner(f'🪄 {ai_choice} กำลังปรุงแต่งเนื้อร้อง...'):
                 if ai_choice == "Gemini (Google)":
                     genai.configure(api_key=api_key)
                     model = genai.GenerativeModel(model_option)
@@ -76,42 +78,38 @@ if generate_btn:
                 style_tags = extract_content(res_text, "STYLE")
                 lyrics = extract_content(res_text, "LYRICS")
 
-                st.success(f"✅ AI คำนวณเสร็จแล้ว: **{title}**")
+                # --- แสดงผลหน้าเดียวเรียงลงมา (Step by Step) ---
                 
-                # --- ส่วนแสดงผลและปุ่มลิงก์ ---
-                col1, col2 = st.columns([1, 1.5])
-                with col1:
-                    st.markdown("<div class='copy-section'><span class='label-tag'>📌 1. SONG TITLE</span>", unsafe_allow_html=True)
-                    st.code(title)
-                    st.markdown("<span class='label-tag'>🎹 2. STYLE PROMPT</span>", unsafe_allow_html=True)
-                    st.code(f"Thai, {style_tags}")
-                    
-                    # เพิ่มปุ่มลิงก์ไป Suno
-                    st.markdown(f"""
-                        <a href="https://suno.com/create" target="_blank" class="suno-button">
-                            🎨 เปิด Suno.com (สร้างเพลงเลย)
-                        </a>
-                    """, unsafe_allow_html=True)
-                    st.markdown("</div>", unsafe_allow_html=True)
-                    
-                with col2:
-                    st.markdown("<div class='copy-section'><span class='label-tag'>📝 3. LYRICS & CHORDS</span>", unsafe_allow_html=True)
-                    st.code(lyrics if lyrics else res_text)
-                    st.markdown("</div>", unsafe_allow_html=True)
+                # 1. ชื่อเพลง
+                st.markdown("<div class='copy-section'><span class='label-tag'>📌 1. ชื่อเพลง (TITLE)</span>", unsafe_allow_html=True)
+                st.code(title if title else "ไม่ได้ระบุชื่อ")
+                st.markdown("</div>", unsafe_allow_html=True)
+
+                # 2. สไตล์
+                st.markdown("<div class='copy-section'><span class='label-tag'>🎹 2. แนวเพลงสำหรับ Suno (STYLE)</span>", unsafe_allow_html=True)
+                st.code(f"Thai, {style_tags}")
+                st.markdown("</div>", unsafe_allow_html=True)
+
+                # 3. ปุ่มวาร์ป
+                st.markdown(f"""
+                    <a href="https://suno.com/create" target="_blank" class="suno-button">
+                        🎨 ก๊อปปี้เสร็จแล้ว กดไปสร้างเพลงที่ Suno.com
+                    </a>
+                """, unsafe_allow_html=True)
+
+                # 4. เนื้อร้อง (แสดงเด่นที่สุด)
+                st.markdown("<div class='copy-section'><span class='label-tag'>📝 3. เนื้อร้องและคอร์ด (LYRICS)</span>", unsafe_allow_html=True)
+                st.code(lyrics if lyrics else res_text, language="markdown")
+                st.markdown("</div>", unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
 else:
-    # --- หน้า Welcome / Guide ---
-    st.markdown("### 🎼 ยินดีต้อนรับสู่ JAAO Auto-Suno")
-    st.write("กรอกข้อมูลด้านซ้ายเพื่อเริ่มงาน หรือดูวิธีขอ Key ได้ที่ปุ่มด้านล่าง")
-    
+    # หน้าแรก Guide
+    st.info("👈 กรอกข้อมูลที่แถบด้านซ้าย แล้วกดปุ่ม 'คำนวณและสร้างเพลง' ได้เลยครับ")
     with st.expander("📖 วิธีขอ API Key (ฟรี)"):
-        col_g, col_q = st.columns(2)
-        with col_g:
-            st.info("**Gemini Key:** ขอได้ที่ [Google AI Studio](https://aistudio.google.com/)")
-        with col_q:
-            st.info("**Groq Key:** ขอได้ที่ [Groq Console](https://console.groq.com/keys)")
+        st.write("- **Gemini Key:** [Google AI Studio](https://aistudio.google.com/)")
+        st.write("- **Groq Key:** [Groq Console](https://console.groq.com/keys)")
 
 st.markdown("---")
-st.caption("Developed by JAAO Studio | 🚀 Engine: Hybrid v2.7")
+st.caption("Developed by JAAO Studio | 🚀 Engine: Hybrid v2.8")
