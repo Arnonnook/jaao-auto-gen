@@ -33,11 +33,11 @@ with st.sidebar:
     artist = st.text_input("ชื่อศิลปิน", value="JAAO Official")
     topic = st.text_area("เนื้อหา/เรื่องราวของเพลง", placeholder="เช่น รักข้างเดียวในฤดูฝน...")
     
-    # เพิ่มตัวเลือกรายละเอียด
-    gender = st.selectbox("เพศนักร้อง", ["ชาย (Male)", "หญิง (Female)", "คู่ (Duet)"])
-    vocal_tone = st.selectbox("โทนเสียง", ["เสียงสูง (High Pitch)", "เสียงต่ำ/ทุ้ม (Deep/Warm)", "นุ่มนวล (Soft/Airy)", "ดุดัน (Powerful)"])
+    gender = st.selectbox("เพศนักร้อง", ["Male (ชาย)", "Female (หญิง)", "Duet (คู่)"])
+    vocal_tone = st.selectbox("โทนเสียง", ["High Pitch (เสียงสูง)", "Deep/Warm (ทุ้ม/อบอุ่น)", "Soft (นุ่มนวล)", "Powerful (ดุดัน)"])
+    tempo_style = st.select_slider("จังหวะ (Tempo)", options=["Slow", "Moderate", "Fast"])
     
-    style = st.selectbox("แนวเพลง", ["EDM", "T-Pop", "Thai Rock", "LUK THUNG (ลูกทุ่ง)", "Puea Chiwit (เพื่อชีวิต)", "R&B"])
+    style = st.selectbox("แนวเพลง", ["EDM", "T-Pop", "Thai Rock", "LUK THUNG", "Puea Chiwit", "R&B"])
     generate_btn = st.button("🚀 รังสรรค์เพลงแบบละเอียด")
 
 # --- 3. MAIN CONTENT ---
@@ -47,24 +47,19 @@ if generate_btn:
     if not api_key or not topic:
         st.warning("⚠️ กรุณากรอก API Key และเนื้อหาเพลง")
     else:
-        # Prompt แบบเจาะลึกรายละเอียด
         prompt = f"""
         Task: Create a highly detailed prompt for Suno AI.
-        Artist: {artist}
-        Topic: {topic}
-        Main Genre: {style}
-        Vocal Gender: {gender}
-        Vocal Tone: {vocal_tone}
+        Artist: {artist}, Topic: {topic}, Main Genre: {style}
+        Vocal: {gender}, Tone: {vocal_tone}, Tempo: {tempo_style}
 
-        Output strictly in this format:
-        TITLE: [ชื่อเพลงภาษาไทยที่น่าสนใจ]
-        STYLE: [Detailed English tags including: genre, sub-genre, BPM (tempo), vocal gender, vocal pitch (high/low), mood, atmosphere, instruments, and vocal style]
-        LYRICS:
-        [Thai lyrics with guitar chords like [C][G] above text. Use structure [Intro], [Verse], [Chorus], [Bridge], [Outro]]
+        Output Format:
+        TITLE: [ชื่อเพลงภาษาไทย]
+        STYLE: [English tags: genre, BPM, vocal gender, vocal pitch, atmosphere, key, mood, instruments]
+        LYRICS: [Thai lyrics with chords [C][G] and structure [Verse][Chorus]]
         """
 
         try:
-            with st.spinner('🪄 กำลังคำนวณจังหวะและทำนอง...'):
+            with st.spinner('🪄 กำลังคำนวณรายละเอียดเพลง...'):
                 if ai_choice == "Gemini":
                     genai.configure(api_key=api_key)
                     res_text = genai.GenerativeModel('gemini-1.5-flash').generate_content(prompt).text
@@ -77,26 +72,29 @@ if generate_btn:
 
                 st.balloons()
                 
-                # แสดงผลการคำนวณสไตล์แบบละเอียด
+                # แสดงผลส่วนที่ 1
                 st.markdown(f"""
                 <div class='music-card'>
-                    <span class='label-tag'>📌 ชื่อเพลงที่ AI คำนวณให้</span>
-                    <h2 style='margin:0; color:#ffffff;'>{title}</h2>
-                    <p style='color:#8892b0;'>ศิลปิน: {artist} | แนวเพลง: {style}</p>
-                    
-                    <hr style='opacity:0.1; margin:20px 0;'>
-                    
-                    <span class='label-tag'>🎹 STYLE PROMPT (รายละเอียดลึก)</span>
+                    <span class='label-tag'>📌 ชื่อเพลง</span>
+                    <h2 style='margin:0;'>{title}</h2>
+                    <hr style='opacity:0.1; margin:15px 0;'>
+                    <span class='label-tag'>🎹 STYLE (รายละเอียดเจาะลึก)</span>
                     <div style='background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; border:1px solid #1e3a5f;'>
                         <code style='color:#00f2fe;'>{style_tags}</code>
                     </div>
-                    <p style='font-size:12px; color:#8892b0; margin-top:10px;'>*ก๊อปปี้ข้อความในช่องสีฟ้าด้านบนไปวางในช่อง 'Style of Music' ของ Suno</p>
-                    
                     <a href='https://suno.com/create' target='_blank' class='suno-link'>เปิด SUNO AI (CUSTOM MODE)</a>
                 </div>
                 """, unsafe_allow_html=True)
 
+                # แสดงเนื้อร้อง
                 st.markdown("<div class='music-card'>", unsafe_allow_html=True)
                 st.markdown("<span class='label-tag'>📝 เนื้อร้องและคอร์ด</span>", unsafe_allow_html=True)
                 st.code(lyrics if lyrics else res_text, language="markdown")
-                st.markdown("</div>", unsafe_allow_html=
+                st.markdown("</div>", unsafe_allow_html=True)
+
+        except Exception as e:
+            st.error(f"Error: {e}")
+else:
+    st.info("👈 ปรับแต่งรายละเอียดนักร้องและจังหวะที่ด้านซ้าย เพื่อเริ่มการคำนวณครับ")
+
+st.markdown("<p style='text-align:center; opacity:0.3; font-size:12px;'>JAAO STUDIO x MuseGen UI | 2026 Edition</p>", unsafe_allow_html=True)
