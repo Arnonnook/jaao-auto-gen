@@ -72,23 +72,34 @@ if generate_btn:
     else:
         try:
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('models/gemini-1.5-flash-latest') # อัปเดตเป็น Model ที่เสถียรที่สุด
             
-            prompt = f"""
-            You are a professional Thai songwriter for Suno AI.
-            Artist: {artist_name}
-            Topic: {song_topic}
-            Genre: {selected_style}
-            Tempo: {tempo}
-            Mood: {', '.join(mood)}
-
-            Output Format:
-            TITLE: [Song Name]
-            STYLE: [English Suno Tags: genre, mood, tempo, vocal type, 5-8 descriptive tags]
-            LYRICS:
-            [Structure: [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], [Outro]]
-            [Note: Add guitar chords [C][G] above lyrics line]
-            """
+            # --- ส่วนที่เพิ่มเข้ามาใหม่เพื่อความชัวร์ ---
+            # ค้นหา List ของ Model ที่รองรับการสร้างเนื้อหา (Generate Content)
+            available_models = [
+                m.name for m in genai.list_models() 
+                if 'generateContent' in m.supported_generation_methods
+            ]
+            
+            # ลำดับความสำคัญ: ลองหา 1.5 Flash ก่อน ถ้าไม่มีเอาตัวอื่นที่ใช้ได้ตัวแรก
+            selected_model_name = ""
+            if "models/gemini-1.5-flash" in available_models:
+                selected_model_name = "models/gemini-1.5-flash"
+            elif "models/gemini-pro" in available_models:
+                selected_model_name = "models/gemini-pro"
+            elif available_models:
+                selected_model_name = available_models[0]
+            else:
+                st.error("❌ ไม่พบ Model ที่รองรับใน API Key นี้")
+                st.stop()
+            
+            model = genai.GenerativeModel(selected_model_name)
+            # ---------------------------------------
+            
+            with st.spinner(f'🪄 กำลังใช้ {selected_model_name} ร่ายมนตร์...'):
+                response = model.generate_content(prompt)
+                res_text = response.text
+                
+                # ... (ส่วนการ Parsing ข้อมูลเดิมของคุณ) ...
             
             with st.spinner('🪄 กำลังร่ายมนตร์สร้างบทเพลง...'):
                 response = model.generate_content(prompt)
