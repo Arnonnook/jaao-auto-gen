@@ -4,7 +4,7 @@ from groq import Groq
 import re
 
 # --- 1. SETTINGS & THEME ---
-st.set_page_config(page_title="JAAO Auto-Suno", page_icon="🌈", layout="wide")
+st.set_page_config(page_title="JAAO Auto-Suno Pro", page_icon="🌈", layout="wide")
 
 st.markdown("""
 <style>
@@ -12,8 +12,14 @@ st.markdown("""
     [data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.05); }
     .rainbow-title { font-weight: 800; background: linear-gradient(to right, #00f2fe, #4facfe, #9933ff, #ff3366); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 38px; }
     .stButton>button { width: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); color: #000; border-radius: 12px; font-weight: bold; border: none; padding: 10px; }
-    .copy-section { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
+    .copy-section { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 15px; }
     .label-tag { background: #4facfe; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 5px; display: inline-block; }
+    .suno-button { 
+        display: inline-block; padding: 12px 24px; background: linear-gradient(90deg, #ff00cc, #3333ff); 
+        color: white !important; text-decoration: none; border-radius: 10px; font-weight: bold; 
+        text-align: center; margin-top: 10px; width: 100%; transition: 0.3s;
+    }
+    .suno-button:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(255, 0, 204, 0.4); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -44,36 +50,17 @@ with st.sidebar:
     
     generate_btn = st.button("🚀 คำนวณและสร้างเพลง")
 
-# --- 4. MAIN LOGIC ---
+# --- 4. MAIN CONTENT ---
 if generate_btn:
     if not api_key:
         st.warning(f"⚠️ กรุณาใส่ API Key ของ {ai_choice}")
     elif not song_topic:
-        st.error("⚠️ บอกเรื่องราวของเพลงก่อนครับ เดี๋ยว AI คำนวณชื่อเพลงให้")
+        st.error("⚠️ บอกเรื่องราวของเพลงก่อนครับ")
     else:
-        # สั่ง AI ให้เน้นคำนวณชื่อเพลงที่โดนๆ
-        prompt = f"""
-        Role: Professional Songwriter & Creative Director.
-        Task: Create a masterpiece song for Suno AI.
-        Artist: {artist_name}
-        Topic/Story: {song_topic}
-        Genre: {selected_style}
-        
-        Instructions:
-        1. Calculate and Create a catchy Thai Song Title based on the topic.
-        2. Generate Suno Style Tags (English).
-        3. Write Thai lyrics with chords [C][G] above lyrics.
-
-        Format (Strictly):
-        TITLE: [The Thai Title You Calculated]
-        STYLE: [English tags]
-        LYRICS:
-        [Verse 1]
-        ...
-        """
-
+        prompt = f"""Task: Create a song for Suno AI. Artist: {artist_name}, Topic: {song_topic}, Genre: {selected_style}. 
+        Output Format: TITLE: [Thai Title], STYLE: [English Tags], LYRICS: [Thai with Chords]"""
         try:
-            with st.spinner(f'🪄 {ai_choice} กำลังคำนวณชื่อและเนื้อเพลง...'):
+            with st.spinner(f'🪄 {ai_choice} กำลังคำนวณ...'):
                 if ai_choice == "Gemini (Google)":
                     genai.configure(api_key=api_key)
                     model = genai.GenerativeModel(model_option)
@@ -81,49 +68,50 @@ if generate_btn:
                     res_text = response.text
                 else:
                     client = Groq(api_key=api_key)
-                    chat_completion = client.chat.completions.create(
-                        messages=[{"role": "user", "content": prompt}],
-                        model=model_option,
-                    )
-                    res_text = chat_completion.choices[0].message.content
+                    completion = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model=model_option)
+                    res_text = completion.choices[0].message.content
 
-                # --- 5. DISPLAY RESULTS ---
                 st.balloons()
-                
                 title = extract_content(res_text, "TITLE")
                 style_tags = extract_content(res_text, "STYLE")
                 lyrics = extract_content(res_text, "LYRICS")
 
-                # ส่วนของการแสดงผลแบบรวมศูนย์
-                st.success(f"✅ AI คำนวณชื่อเพลงให้แล้ว: **{title}**")
+                st.success(f"✅ AI คำนวณเสร็จแล้ว: **{title}**")
                 
+                # --- ส่วนแสดงผลและปุ่มลิงก์ ---
                 col1, col2 = st.columns([1, 1.5])
-
                 with col1:
-                    st.markdown("<div class='copy-section'>", unsafe_allow_html=True)
-                    st.markdown("<span class='label-tag'>📌 1. ก๊อปปี้ชื่อเพลง (Song Title)</span>", unsafe_allow_html=True)
-                    st.code(title if title else "คำนวณไม่สำเร็จ", language="markdown")
+                    st.markdown("<div class='copy-section'><span class='label-tag'>📌 1. SONG TITLE</span>", unsafe_allow_html=True)
+                    st.code(title)
+                    st.markdown("<span class='label-tag'>🎹 2. STYLE PROMPT</span>", unsafe_allow_html=True)
+                    st.code(f"Thai, {style_tags}")
                     
-                    st.markdown("<span class='label-tag'>🎹 2. ก๊อปปี้สไตล์ (Style of Music)</span>", unsafe_allow_html=True)
-                    st.code(f"Thai, {style_tags}", language="markdown")
+                    # เพิ่มปุ่มลิงก์ไป Suno
+                    st.markdown(f"""
+                        <a href="https://suno.com/create" target="_blank" class="suno-button">
+                            🎨 เปิด Suno.com (สร้างเพลงเลย)
+                        </a>
+                    """, unsafe_allow_html=True)
                     st.markdown("</div>", unsafe_allow_html=True)
-
+                    
                 with col2:
-                    st.markdown("<div class='copy-section'>", unsafe_allow_html=True)
-                    st.markdown("<span class='label-tag'>📝 3. ก๊อปปี้เนื้อเพลง (Lyrics)</span>", unsafe_allow_html=True)
-                    # ถ้าดึง Lyrics ไม่ได้ ให้ใช้ข้อความทั้งหมด
-                    final_lyrics = lyrics if lyrics else res_text
-                    st.code(final_lyrics, language="markdown")
+                    st.markdown("<div class='copy-section'><span class='label-tag'>📝 3. LYRICS & CHORDS</span>", unsafe_allow_html=True)
+                    st.code(lyrics if lyrics else res_text)
                     st.markdown("</div>", unsafe_allow_html=True)
-                
-                st.info("💡 วิธีใช้: นำไปใส่ใน Suno Mode 'Custom' ให้ครบทั้ง 3 ช่องนะครับ")
 
         except Exception as e:
-            st.error(f"❌ เกิดข้อผิดพลาด: {str(e)}")
-
+            st.error(f"❌ Error: {str(e)}")
 else:
-    # หน้าแรก
-    st.markdown("<h2 style='text-align:center; opacity:0.5; padding-top:100px;'>🎨 ใส่ Story แล้วให้ AI คำนวณทุกอย่างให้คุณ</h2>", unsafe_allow_html=True)
+    # --- หน้า Welcome / Guide ---
+    st.markdown("### 🎼 ยินดีต้อนรับสู่ JAAO Auto-Suno")
+    st.write("กรอกข้อมูลด้านซ้ายเพื่อเริ่มงาน หรือดูวิธีขอ Key ได้ที่ปุ่มด้านล่าง")
+    
+    with st.expander("📖 วิธีขอ API Key (ฟรี)"):
+        col_g, col_q = st.columns(2)
+        with col_g:
+            st.info("**Gemini Key:** ขอได้ที่ [Google AI Studio](https://aistudio.google.com/)")
+        with col_q:
+            st.info("**Groq Key:** ขอได้ที่ [Groq Console](https://console.groq.com/keys)")
 
 st.markdown("---")
-st.caption(f"© 2026 JAAO Studio | Engine: {ai_choice}")
+st.caption("Developed by JAAO Studio | 🚀 Engine: Hybrid v2.7")
