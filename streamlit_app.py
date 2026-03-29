@@ -82,4 +82,4 @@ if generate_btn:
 
                 # --- 5. DISPLAY ---
                 st.balloons()
-                title = extract_content(res_text
+                title = extract_content(res_text)
