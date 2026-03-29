@@ -105,19 +105,14 @@ with st.sidebar:
     style = st.selectbox("Genre", ["EDM", "Pop", "Rock", "LUK THUNG", "HIPHOP", "Indie"])
     generate_btn = st.button("Generate Masterpiece")
 
-# --- 4. HERO SECTION ---
+# --- 4. HERO SECTION (ส่วนที่มีปัญหาบรรทัด 123) ---
 col_hero, col_img = st.columns([1.2, 1])
 
 with col_hero:
     st.markdown("<h1 class='hero-title'>Dive Into<br>Deep Blue<br>Sound</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color:#8892b0; font-size:18px;'>สร้างและคำนวณบทเพลงระดับพรีเมียมสำหรับ Suno AI โดยเฉพาะ</p>", unsafe_allow_html=True)
-    st.markdown("""
-        <span class='badge'>Exclusive License</span>
-        <span class='badge'>Full Mix MP3</span>
-        <span class='badge'>Crystal UI Theme</span>
-        <span class='badge'>PromptPay</span>
-    """, unsafe_allow_html=True)
+    st.markdown("<span class='badge'>Exclusive License</span><span class='badge'>Full Mix MP3</span>", unsafe_allow_html=True)
 
 with col_img:
-    # รูปบรรยากาศสตูดิโอ/คอนเสิร์ต
-    st.image("
+    # ตรวจสอบบรรทัดนี้: ต้องมี " ปิดหัว-ท้ายลิงก์ และมี ) ปิดฟังก์ชัน
+    st.image("https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop", use_container_width=True)
