@@ -72,7 +72,7 @@ if generate_btn:
     else:
         try:
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-2.5-flash') # อัปเดตเป็น Model ที่เสถียรที่สุด
+            model = genai.GenerativeModel('gemini-1.5-flash') # อัปเดตเป็น Model ที่เสถียรที่สุด
             
             prompt = f"""
             You are a professional Thai songwriter for Suno AI.
